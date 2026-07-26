@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictionflex Pro | Advanced Learning Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030712;
+            --card-bg: #0b0f19;
+            --card-inner: #111827;
+            --primary: #3b82f6;
+            --primary-muted: rgba(59, 130, 246, 0.12);
+            --primary-hover: #2563eb;
+            --text-main: #9ca3af;
+            --text-heading: #f3f4f6;
+            --text-muted: #6b7280;
+            --border: #1f2937;
+            --border-hover: #374151;
+            
+            /* Enhanced POS Color Palette */
+            --pos-noun: #a78bfa;
+            --pos-verb: #34d399;
+            --pos-adj: #f87171;
+            --pos-adv: #fb7185;
+            --pos-fallback: #fbbf24;
+            
+            --en-accent: #60a5fa;
+            --vn-accent: #f87171;
+
+            /* CEFR Levels Color coding */
+            --cefr-a: #10b981;
+            --cefr-b: #f59e0b;
+            --cefr-c: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 24px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .ide-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        @media(min-width: 1024px) {
+            .ide-container {
+                grid-template-columns: 340px 1fr;
+            }
+        }
+
+        /* Advanced Sidebar Ledger Panel */
+        .sidebar-ledger {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+        }
+
+        .sidebar-header h3 {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-heading);
+            font-weight: 700;
+        }
+
+        .btn-reset-engine {
+            background: transparent;
+            border: none;
+            color: var(--pos-adj);
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.2s, opacity 0.2s;
+        }
+
+        .btn-reset-engine:hover {
+            color: #ef4444;
+            opacity: 0.9;
+        }
+
+        /* WebGPU Engine Hardware Monitoring Component */
+        .webgpu-status-box {
+            background: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .webgpu-title {
+            color: var(--text-heading);
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 700;
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--pos-fallback);
+            text-transform: uppercase;
+        }
+        .status-badge.ready {
+            background: rgba(52, 211, 153, 0.1);
+            color: var(--pos-verb);
+        }
+
+        .webgpu-progress-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--bg);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .webgpu-progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.1s ease;
+        }
+
+        /* High-Performance Smooth Inertial Scroll Area */
+        .ledger-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 6px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .ledger-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .ledger-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 99px;
+        }
+
+        .ledger-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 99px;
+            border: 1px solid transparent;
+            background-clip: padding-box;
+            transition: background 0.3s ease;
+        }
+
+        .ledger-list::-webkit-scrollbar-thumb:hover {
+            background: var(--border-hover);
+        }
+
+        .ledger-list {
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .ledger-item {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: var(--text-main);
+            padding: 12px 14px;
+            background: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ledger-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-muted);
+            color: var(--text-heading);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .ledger-badge {
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--border);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: var(--text-heading);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .ledger-empty {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        /* Core Processing Terminal Workspace */
+        .workbench-panel {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        header {
+            margin-bottom: 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        header h1 {
+            color: var(--text-heading);
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .kbd-callout {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--card-inner);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Predictive Matrix Form Layer */
+        .search-engine-group {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .search-input-box {
+            display: flex;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 6px;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .search-input-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .search-input-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 14px 18px;
+            font-size: 16px;
+            color: var(--text-heading);
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .search-input-box button {
+            background: var(--card-inner);
+            color: var(--text-heading);
+            border: 1px solid var(--border);
+            padding: 0 28px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-input-box button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Automated Context Stream Dropper Panel */
+        .predictor-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            z-index: 999;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            padding: 6px;
+        }
+
+        .predictor-node {
+            padding: 12px 18px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: var(--text-main);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
+        }
+
+        .predictor-node:hover, .predictor-node.active {
+            background: var(--primary-muted);
+            color: var(--text-heading);
+        }
+
+        .predictor-badge {
+            font-size: 10px;
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .error-log-card {
+            display: none;
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid #ef4444;
+            color: #f87171;
+            padding: 18px;
+            border-radius: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+        }
+
+        .stage-layout {
+            display: none;
+            animation: terminalRender 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes terminalRender {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Identity Token Module */
+        .lexical-hero-block {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--card-inner);
+            padding: 32px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        @media (min-width: 640px) {
+            .lexical-hero-block {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .hero-title-group h2 {
+            color: var(--text-heading);
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            display: inline-block;
+        }
+
+        .hero-title-group .translation-literal {
+            font-size: 28px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-left: 18px;
+        }
+
+        .hero-title-group .phonetic-transcript {
+            font-family: 'Fira Code', monospace;
+            font-size: 15px;
+            color: var(--primary);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .audio-pipeline-triggers {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-telemetry-audio {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-heading);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-telemetry-audio:hover {
+            border-color: var(--primary);
+            background: var(--primary-muted);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Metric Diagnostic Hub */
+        .telemetry-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .metric-cell {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .metric-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .metric-lbl {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 8px;
+            letter-spacing: 1.5px;
+        }
+
+        /* CEFR Tier Styling Updates */
+        .cefr-badge-a { color: var(--cefr-a) !important; }
+        .cefr-badge-b { color: var(--cefr-b) !important; }
+        .cefr-badge-c { color: var(--cefr-c) !important; }
+
+        /* Grammatical Syntax Tree Segments */
+        .syntax-boundary-node {
+            margin-bottom: 44px;
+        }
+
+        .syntax-node-header {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .syntax-node-header.noun-theme { color: var(--pos-noun); }
+        .syntax-node-header.verb-theme { color: var(--pos-verb); }
+        .syntax-node-header.adjective-theme { color: var(--pos-adj); }
+        .syntax-node-header.adverb-theme { color: var(--pos-adv); }
+        .syntax-node-header.fallback-theme { color: var(--pos-fallback); }
+
+        .syntax-node-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .compilation-card-row {
+            background: var(--card-inner);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        /* Utility Flashcard Generation Triggers */
+        .btn-action-flashcard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-action-flashcard:hover {
+            color: var(--pos-verb);
+            border-color: var(--pos-verb);
+            background: rgba(52, 211, 153, 0.05);
+        }
+
+        .split-compilation-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media(min-width: 768px) {
+            .split-compilation-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+            }
+        }
+
+        .compilation-block-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        
+        .block-en-source .compilation-block-title { color: var(--en-accent); }
+        .block-vi-target .compilation-block-title { color: var(--vn-accent); }
+
+        .syntax-literal-text {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #e5e7eb;
+        }
+
+        .compilation-token {
+            display: inline-block;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, transform 0.1s;
+            border-bottom: 1px dotted var(--text-muted);
+        }
+
+        .compilation-token:hover {
+            color: var(--primary);
+            background: var(--primary-muted);
+            border-bottom-color: var(--primary);
+            transform: translateY(-0.5px);
+        }
+
+        .compiled-keyword-match {
+            color: #ffffff !important;
+            background: rgba(59, 130, 246, 0.25);
+            padding: 0 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--primary) !important;
+        }
+
+        .context-sandbox-box {
+            margin-top: 24px;
+            background: var(--bg);
+            padding: 20px 24px;
+            border-radius: 8px;
+            font-size: 14.5px;
+            border-left: 4px solid var(--primary);
+            line-height: 1.7;
+            position: relative;
+        }
+
+        .sandbox-en {
+            font-style: italic;
+            color: var(--text-heading);
+            margin-bottom: 8px;
+        }
+
+        .sandbox-vi {
+            color: var(--text-main);
+        }
+
+        /* Synset Token Relations Array Layout */
+        .synset-matrix-wrapper {
+            margin-top: 24px;
+            padding-top: 22px;
+            border-top: 1px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .synset-row {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .synset-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .synset-row.synonyms .synset-title { color: var(--pos-verb); }
+        .synset-row.antonyms .synset-title { color: var(--pos-adj); }
+
+        .synset-token-vault {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .synset-node-tag {
+            background: var(--bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .synset-row.synonyms .synset-node-tag:hover {
+            background: rgba(52, 211, 153, 0.08);
+            border-color: var(--pos-verb);
+            color: var(--pos-verb);
+        }
+
+        .synset-row.antonyms .synset-node-tag:hover {
+            background: rgba(248, 113, 113, 0.08);
+            border-color: var(--pos-adj);
+            color: var(--pos-adj);
+        }
+
+        /* Paradigm Synthesis Container Grid */
+        .paradigm-generation-node {
+            margin-top: 40px;
+            background: rgba(59, 130, 246, 0.01);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .paradigm-node-header {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 24px;
+        }
+
+        .paradigm-stream-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+        }
+
+        .paradigm-stream-row {
+            font-size: 15px;
+            line-height: 1.7;
+            position: relative;
+            padding-right: 80px;
+        }
+
+        .paradigm-scope-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--card-inner);
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: inline-block;
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        .paradigm-str-en {
+            color: var(--text-heading);
+            font-weight: 500;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .paradigm-str-vi {
+            color: var(--text-muted);
+            margin-top: 6px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .terminal-loading-state {
+            font-family: 'Fira Code', monospace;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 64px 0;
+        }
+
+        /* Flashcard Global Action Toast Feedback Layer */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--card-inner);
+            border: 1px solid var(--pos-verb);
+            color: var(--text-heading);
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 10000;
+            animation: terminalRender 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div id="toastNotification" class="toast-notification">Flashcard entry compiled into clipboard!</div>
+
+<div class="ide-container">
+    <aside class="sidebar-ledger">
+        <div class="sidebar-header">
+            <h3>State History Ledger</h3>
+            <button class="btn-reset-engine" onclick="dispatch({type: 'RESET_STATE'})">Purge Ledger</button>
+        </div>
+
+        <div class="webgpu-status-box">
+            <div class="webgpu-title">
+                <span>Architect 2.5</span>
+                <span id="webgpuStatusBadge" class="status-badge">Uninitialized</span>
+            </div>
+            <div id="webgpuLogText" style="color: var(--text-muted); line-height: 1.45;">WebGPU pipeline idle. Initialized automatically on sentence request.</div>
+            <div id="webgpuProgressBar" class="webgpu-progress-bar">
+                <div id="webgpuProgressFill" class="webgpu-progress-fill"></div>
+            </div>
+        </div>
+
+        <ul id="historyLedgerContainer" class="ledger-list">
+            <li class="ledger-empty">Ledger stack is null.</li>
+        </ul>
+    </aside>
+
+    <main class="workbench-panel">
+        <header>
+            <div>
+                <h1>Dictionflex Pro</h1>
+                <p>The most advanced dictionary engine ever built, designed by Tommy.</p>
+            </div>
+            <div class="kbd-callout">
+                <span>Alt + S Focus Input</span>
+                <span>Alt + V Native Paste</span>
+            </div>
+        </header>
+
+        <div class="search-engine-group">
+            <form class="search-input-box" onsubmit="event.preventDefault(); executeCompilationPipeline();">
+                <input type="text" id="wordTerminalInput" placeholder="Enter target token stream or text phrase array..." autocomplete="off">
+                <button type="submit">Define</button>
+            </form>
+            <ul id="predictorDropdownPanel" class="predictor-panel"></ul>
+        </div>
+
+        <div id="errorLogCard" class="error-log-card">CRITICAL FAULT: Lexical extraction engine halted. Identifier parsing unresolvable.</div>
+
+        <div id="stageLayoutWrapper" class="stage-layout">
+            <div class="lexical-hero-block">
+                <div class="hero-title-group">
+                    <div>
+                        <h2 id="metaDisplayWord">Identifier</h2>
+                        <span id="metaDisplayViLiteral" class="translation-literal">Bản dịch</span>
+                    </div>
+                    <div id="metaDisplayPhonetic" class="phonetic-transcript">/--/</div>
+                </div>
+                <div class="audio-pipeline-triggers">
+                    <button class="btn-telemetry-audio" onclick="triggerVoiceSynthesis(1.0)">Read Fast</button>
+                    <button class="btn-telemetry-audio" onclick="triggerVoiceSynthesis(0.65)">Read Slow</button>
+                </div>
+            </div>
+
+            <div class="telemetry-dashboard">
+                <div class="metric-cell">
+                    <div id="metricComplexity" class="metric-val">NULL</div>
+                    <div class="metric-lbl">AST Complexity</div>
+                </div>
+                <div class="metric-cell">
+                    <div id="metricLength" class="metric-val">0</div>
+                    <div class="metric-lbl">Character Bounds</div>
+                </div>
+                <div class="metric-cell">
+                    <div id="metricRatio" class="metric-val">0</div>
+                    <div class="metric-lbl">Syllable Matrix</div>
+                </div>
+                <div class="metric-cell">
+                    <div id="metricCefr" class="metric-val">Analyzing...</div>
+                    <div class="metric-lbl">CEFR Profile</div>
+                </div>
+            </div>
+
+            <div id="syntaxTreeOutput"></div>
+            <div id="paradigmEngineOutput"></div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function escapeHtml(string) {
+        if (!string) return "";
+        return String(string)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    window.escapeHtml = escapeHtml;
+
+    // Advanced Local Audio Pipeline Synthesizer
+    const AudioPipeline = {
+        ctx: null,
+        init() {
+            if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        },
+        playClick() {
+            this.init();
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.04);
+        },
+        playSuccess() {
+            this.init();
+            const time = this.ctx.currentTime;
+            this.triggerTone(523.25, time, 0.08); // C5
+            this.triggerTone(659.25, time + 0.06, 0.12); // E5
+        },
+        triggerTone(freq, start, duration) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, start);
+            gain.gain.setValueAtTime(0.06, start);
+            gain.gain.linearRampToValueAtTime(0.001, start + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(start);
+            osc.stop(start + duration);
+        }
+    };
+    window.AudioPipeline = AudioPipeline;
+
+    // Advanced Cross-Platform Anki Serialization Interface Pipeline
+    function exportToAnkiFlashcard(frontText, backText, exampleEn = "", exampleVi = "") {
+        let backPayload = backText;
+        if (exampleEn) {
+            backPayload += `<br><br><hr><br><strong>Example:</strong> ${exampleEn}`;
+        }
+        if (exampleVi) {
+            backPayload += `<br><span style="color: #6b7280; font-size: 0.9em;">(${exampleVi})</span>`;
+        }
+        
+        const tabDelimitedString = `${frontText}\t${backPayload}`;
+        navigator.clipboard.writeText(tabDelimitedString).then(() => {
+            const el = document.getElementById('toastNotification');
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 2500);
+        }).catch(err => {
+            console.error("Anki compiler formatting exception: ", err);
+        });
+    }
+    window.exportToAnkiFlashcard = exportToAnkiFlashcard;
+</script>
+
+<script type="module">
+    let webLLMModule = null;
+    let mlcEngineInstance = null;
+    let isEngineLoading = false;
+
+    const MLC_MODEL_ID = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+    const SYSTEM_PROMPT = "You are a helpful dictionary sentences assistant. Generate exactly 3 diverse, natural sentences in English using the provided vocabulary word. Provide ONLY the sentences separated by a newline. Do not include numbers, labels, or code blocks.";
+
+    async function guaranteeMlcEngineLoaded() {
+        const statusBadge = document.getElementById('webgpuStatusBadge');
+        const logText = document.getElementById('webgpuLogText');
+        const progressBar = document.getElementById('webgpuProgressBar');
+        const progressFill = document.getElementById('webgpuProgressFill');
+
+        if (mlcEngineInstance) return mlcEngineInstance;
+        if (isEngineLoading) {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (mlcEngineInstance) {
+                        clearInterval(checkInterval);
+                        resolve(mlcEngineInstance);
+                    }
+                }, 200);
+            });
+        }
+
+        isEngineLoading = true;
+        try {
+            statusBadge.innerText = "Loading 3B";
+            progressBar.style.display = "block";
+            logText.innerText = "Importing MLC Web-LLM hardware modules...";
+
+            if (!webLLMModule) {
+                webLLMModule = await import("https://esm.run/@mlc-ai/web-llm");
+            }
+
+            logText.innerText = `Allocating ${MLC_MODEL_ID} kernels onto WebGPU...`;
+
+            mlcEngineInstance = await webLLMModule.CreateMLCEngine(MLC_MODEL_ID, {
+                initProgressCallback: (report) => {
+                    const cleanPercentage = (report.progress * 100).toFixed(1);
+                    progressFill.style.width = `${cleanPercentage}%`;
+                    logText.innerText = report.text;
+                }
+            });
+
+            statusBadge.innerText = "Ready";
+            statusBadge.classList.add("ready");
+            logText.innerText = "Local, Secure, Instant Smart Compiler Connected.";
+            progressBar.style.display = "none";
+            isEngineLoading = false;
+            return mlcEngineInstance;
+        } catch (err) {
+            statusBadge.innerText = "Fallback";
+            logText.innerText = "WebGPU failure. Lacking local hardware WebGPU interface bindings.";
+            progressBar.style.display = "none";
+            isEngineLoading = false;
+            console.error(err);
+            throw err;
+        }
+    }
+
+    async function evaluateConcurrentParadigmMatrix(wordValue, threadSignalToken) {
+        const engineOutput = document.getElementById('paradigmEngineOutput');
+        let engine = null;
+
+        try {
+            engine = await guaranteeMlcEngineLoaded();
+        } catch (e) {
+            engineOutput.innerHTML = `<div class="error-log-card" style="display:block;">WebGPU Context Unobtainable: Local inference execution halted.</div>`;
+            return;
+        }
+
+        if (threadSignalToken.aborted) return;
+
+        engineOutput.innerHTML = `
+            <div class="paradigm-generation-node">
+                <div class="paradigm-node-header">AI Sentence Streams (Llama 3B Local Core)</div>
+                <div class="paradigm-stream-stack" id="mlcLiveSentenceStream">
+                    <div class="terminal-loading-state" id="mlcStreamPendingPlaceholder">Computing continuous sequence prediction models...</div>
+                </div>
+            </div>
+        `;
+
+        const conversationHistory = [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: `Generate sentences for the word: "${wordValue}"` }
+        ];
+
+        let accumulatedStreamText = "";
+        document.getElementById('webgpuStatusBadge').innerText = "Streaming";
+
+        try {
+            const completionIterator = await engine.chat.completions.create({
+                messages: conversationHistory,
+                stream: true
+            });
+
+            for await (const tokenChunk of completionIterator) {
+                if (threadSignalToken.aborted) return;
+                const incrementalContent = tokenChunk.choices[0]?.delta?.content || "";
+                accumulatedStreamText += incrementalContent;
+
+                let liveLines = accumulatedStreamText.split('\n')
+                    .map(l => l.replace(/^[-*\d.\s]+/, '').trim())
+                    .filter(l => l.length > 0);
+
+                if (liveLines.length > 0) {
+                    const placeholder = document.getElementById('mlcStreamPendingPlaceholder');
+                    if (placeholder) placeholder.remove();
+
+                    const streamStack = document.getElementById('mlcLiveSentenceStream');
+                    const categories = ["Conversational Execution Strategy", "Academic / Empirical Objective", "Enterprise Architecture Domain"];
+                    
+                    let temporaryHtml = "";
+                    liveLines.slice(0, 3).forEach((sentenceText, idx) => {
+                        const cleanSentenceEscaped = sentenceText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        temporaryHtml += `
+                            <div class="paradigm-stream-row">
+                                <button class="btn-action-flashcard" onclick="exportToAnkiFlashcard('${wordValue}', 'Local AI Sentence Production Sample', '${cleanSentenceEscaped}', '')">Anki</button>
+                                <div><span class="paradigm-scope-badge">${window.escapeHtml(categories[idx] || "Dynamic Context")}</span></div>
+                                <div class="paradigm-str-en">${abstractLexicalCompilation(sentenceText, wordValue)}</div>
+                                <div class="paradigm-str-vi" id="mlcViLine-${idx}">Translating live token stream...</div>
+                            </div>
+                        `;
+                    });
+                    streamStack.innerHTML = temporaryHtml;
+                }
+            }
+
+            document.getElementById('webgpuStatusBadge').innerText = "Ready";
+            let finalizedLines = accumulatedStreamText.split('\n')
+                .map(l => l.replace(/^[-*\d.\s]+/, '').trim())
+                .filter(l => l.length > 5);
+
+            finalizedLines.slice(0, 3).forEach(async (sentenceText, idx) => {
+                const targetTranslationElement = document.getElementById(`mlcViLine-${idx}`);
+                if (targetTranslationElement) {
+                    const translatedOutputText = await executeAtomicTranslationFetch(sentenceText, 'vi', threadSignalToken);
+                    targetTranslationElement.innerText = translatedOutputText;
+                    
+                    // Reactive Anki parameter injection updates mapping fields once async translation resolves
+                    const rowButton = targetTranslationElement.parentElement.querySelector('.btn-action-flashcard');
+                    if (rowButton) {
+                        const cleanEn = sentenceText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        const cleanVi = translatedOutputText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        rowButton.setAttribute('onclick', `exportToAnkiFlashcard('${wordValue}', 'AI Local Core Generation Matrix Node', '${cleanEn}', '${cleanVi}')`);
+                    }
+                }
+            });
+
+        } catch (inferenceFault) {
+            if (inferenceFault.name === 'AbortError') return;
+            engineOutput.innerHTML = `<div class="error-log-card" style="display:block;">Inference stream pipeline exception.</div>`;
+        }
+    }
+
+    window.guaranteeMlcEngineLoaded = guaranteeMlcEngineLoaded;
+    window.evaluateConcurrentParadigmMatrix = evaluateConcurrentParadigmMatrix;
+</script>
+
+<script>
+    let store = {
+        history: (() => {
+            try { return JSON.parse(localStorage.getItem('ide_history_v7')) || []; } 
+            catch(e) { return []; }
+        })(),
+        cache: (() => {
+            try { return JSON.parse(localStorage.getItem('ide_cache_v7')) || {}; } 
+            catch(e) { return {}; }
+        })(),
+        activeWord: localStorage.getItem('ide_last_word_v7') || null,
+        activeData: null
+    };
+
+    let activeSystemVoice = null;
+    let predictorTargetIndex = -1;
+    let inputDebounceReference = null;
+    let pipelineAbortController = null;
+
+    const posTranslationMap = {
+        "noun": "Danh từ", "pronoun": "Đại từ", "verb": "Động từ", "adjective": "Tính từ",
+        "adverb": "Trạng từ", "preposition": "Giới từ", "conjunction": "Liên từ",
+        "interjection": "Thán từ", "article": "Mạo từ", "exclamation": "Từ cảm thán", "plural": "Danh từ số nhiều"
+    };
+
+    function deepFreeze(object) {
+        if (object === null || typeof object !== 'object') return object;
+        const propNames = Object.getOwnPropertyNames(object);
+        for (const name of propNames) {
+            const value = object[name];
+            if (value && typeof value === 'object') deepFreeze(value);
+        }
+        return Object.freeze(object);
+    }
+
+    function performCacheGarbageCollection() {
+        const cacheKeys = Object.keys(store.cache);
+        if (cacheKeys.length > 200) {
+            const pruneTargets = cacheKeys.slice(0, cacheKeys.length - 200);
+            pruneTargets.forEach(key => delete store.cache[key]);
+            localStorage.setItem('ide_cache_v7', JSON.stringify(store.cache));
+        }
+    }
+
+    function dispatch(action) {
+        if (action.payload && typeof action.payload === 'object') {
+            deepFreeze(action.payload);
+        }
+
+        switch(action.type) {
+            case 'COMMIT_HISTORY_ENTRY':
+                const entryWord = action.payload.toLowerCase().trim();
+                let existingRecord = store.history.find(node => node.word === entryWord);
+                if (existingRecord) {
+                    existingRecord.count += 1;
+                    store.history = [existingRecord, ...store.history.filter(node => node.word !== entryWord)];
+                } else {
+                    store.history.unshift({ word: entryWord, count: 1 });
+                }
+                if (store.history.length > 40) store.history.pop();
+                localStorage.setItem('ide_history_v7', JSON.stringify(store.history));
+                renderHistoryLedger();
+                break;
+                
+            case 'COMMIT_TRANSLATION_CACHE':
+                const { cacheKey, payloadString } = action.payload;
+                store.cache[cacheKey] = payloadString;
+                performCacheGarbageCollection();
+                localStorage.setItem('ide_cache_v7', JSON.stringify(store.cache));
+                break;
+                
+            case 'RESET_STATE':
+                store.history = [];
+                store.cache = {};
+                store.activeWord = null;
+                store.activeData = null;
+                localStorage.removeItem('ide_history_v7');
+                localStorage.removeItem('ide_cache_v7');
+                localStorage.removeItem('ide_last_word_v7');
+                renderHistoryLedger();
+                document.getElementById('stageLayoutWrapper').style.display = 'none';
+                break;
+                
+            case 'SET_ACTIVE_TARGET':
+                store.activeWord = action.payload.word;
+                store.activeData = action.payload.data;
+                localStorage.setItem('ide_last_word_v7', action.payload.word);
+                break;
+        }
+    }
+
+    function initSpeechPipeline() {
+        if (!('speechSynthesis' in window)) return;
+        const voices = window.speechSynthesis.getVoices();
+        const performancePriorityTargets = ["Google US English", "Microsoft Aria Online", "Samantha"];
+        for (let targetName of performancePriorityTargets) {
+            let matches = voices.find(v => v.name.includes(targetName) && v.lang.startsWith('en'));
+            if (matches) { activeSystemVoice = matches; break; }
+        }
+        if (!activeSystemVoice) activeSystemVoice = voices.find(v => v.lang.startsWith('en'));
+    }
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => initSpeechPipeline();
+        setTimeout(() => { if (!activeSystemVoice) initSpeechPipeline(); }, 200);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderHistoryLedger();
+        bindInputPredictionMatrix();
+        
+        if (store.activeWord) {
+            document.getElementById('wordTerminalInput').value = store.activeWord;
+            executeCompilationPipeline(true);
+        }
+    });
+
+    function bindInputPredictionMatrix() {
+        const terminalInput = document.getElementById('wordTerminalInput');
+        const internalPanel = document.getElementById('predictorDropdownPanel');
+
+        terminalInput.addEventListener('input', () => {
+            AudioPipeline.playClick();
+            clearTimeout(inputDebounceReference);
+            const rawValue = terminalInput.value;
+            predictorTargetIndex = -1;
+            
+            if (!rawValue.trim()) {
+                internalPanel.style.display = 'none';
+                return;
+            }
+
+            const matrixSegments = rawValue.split(/\s+/);
+            const coreTargetToken = matrixSegments[matrixSegments.length - 1].toLowerCase().replace(/[^\w'-]/g, "");
+
+            if (!coreTargetToken) {
+                internalPanel.style.display = 'none';
+                return;
+            }
+
+            inputDebounceReference = setTimeout(async () => {
+                try {
+                    const endpoint = await fetch(`https://api.datamuse.com/words?sp=${coreTargetToken}*&max=6`);
+                    if (!endpoint.ok) return;
+                    const evaluationArray = await endpoint.json();
+
+                    if (evaluationArray.length === 0) {
+                        internalPanel.style.display = 'none';
+                        return;
+                    }
+
+                    internalPanel.innerHTML = evaluationArray.map(node => `
+                        <li class="predictor-node" onclick="injectPredictedValue('${node.word.replace(/'/g, "\\'")}')">
+                            <span>${escapeHtml(node.word)}</span>
+                            <span class="predictor-badge">TOKEN MATCH</span>
+                        </li>
+                    `).join('');
+                    internalPanel.style.display = 'block';
+                } catch (ex) {
+                    console.error(ex);
+                }
+            }, 100);
+        });
+
+        terminalInput.addEventListener('keydown', (evt) => {
+            const listNodes = internalPanel.querySelectorAll('.predictor-node');
+            if (internalPanel.style.display === 'block' && listNodes.length > 0) {
+                if (evt.key === 'ArrowDown') {
+                    evt.preventDefault();
+                    predictorTargetIndex = (predictorTargetIndex + 1) % listNodes.length;
+                    evaluateFocusedDropdownState(listNodes);
+                } else if (evt.key === 'ArrowUp') {
+                    evt.preventDefault();
+                    predictorTargetIndex = (predictorTargetIndex - 1 + listNodes.length) % listNodes.length;
+                    evaluateFocusedDropdownState(listNodes);
+                } else if (evt.key === 'Enter') {
+                    evt.preventDefault();
+                    if (predictorTargetIndex > -1) {
+                        const valueString = listNodes[predictorTargetIndex].querySelector('span').innerText;
+                        resolvePredictionInjection(valueString);
+                    } else {
+                        internalPanel.style.display = 'none';
+                        executeCompilationPipeline();
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.search-engine-group')) {
+                internalPanel.style.display = 'none';
+            }
+        });
+    }
+
+    function evaluateFocusedDropdownState(nodes) {
+        const primaryInput = document.getElementById('wordTerminalInput');
+        nodes.forEach((element, pointer) => {
+            if (pointer === predictorTargetIndex) {
+                element.classList.add('active');
+                const isolatedWord = element.querySelector('span').innerText;
+                const processingSegments = primaryInput.value.split(/\s+/);
+                processingSegments[processingSegments.length - 1] = isolatedWord;
+                primaryInput.value = processingSegments.join(' ');
+            } else {
+                element.classList.remove('active');
+            }
+        });
+    }
+
+    function injectPredictedValue(tokenWord) {
+        resolvePredictionInjection(tokenWord);
+    }
+
+    function resolvePredictionInjection(wordString) {
+        const mainInput = document.getElementById('wordTerminalInput');
+        const processingSegments = mainInput.value.split(/\s+/);
+        processingSegments[processingSegments.length - 1] = wordString;
+        mainInput.value = processingSegments.join(' '); 
+        document.getElementById('predictorDropdownPanel').style.display = 'none';
+        executeCompilationPipeline();
+    }
+
+    window.addEventListener('keydown', async (e) => {
+        if (e.altKey && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            document.getElementById('wordTerminalInput').focus();
+        }
+        if (e.altKey && e.key.toLowerCase() === 'v') {
+            e.preventDefault();
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+                if (clipboardText.trim()) {
+                    document.getElementById('wordTerminalInput').value = clipboardText.trim();
+                    executeCompilationPipeline();
+                }
+            } catch (err) {
+                console.warn("Clipboard mapping permissions rejected.");
+            }
+        }
+        if (e.key === 'Escape') {
+            document.getElementById('stageLayoutWrapper').style.display = 'none';
+            document.getElementById('predictorDropdownPanel').style.display = 'none';
+            document.getElementById('wordTerminalInput').value = '';
+        }
+    });
+
+    // Morphological Substring Token Matching Core
+    function abstractLexicalCompilation(sourceText, targetIdentifier = "") {
+        if (!sourceText) return "";
+        const structuralWordSegments = sourceText.split(/(\s+)/);
+        const coreRoot = targetIdentifier.toLowerCase().trim();
+        
+        return structuralWordSegments.map(chunkElement => {
+            if (/^\s+$/.test(chunkElement)) return chunkElement;
+            
+            const analyticalPunctuationMatch = chunkElement.match(/^([.,\/#!$%\^&\*;:{}=\-_`~()""'']*?)(.*?)([.,\/#!$%\^&\*;:{}=\-_`~()""'']*?)$/);
+            if (!analyticalPunctuationMatch) return escapeHtml(chunkElement);
+            
+            const prefixSymbols = escapeHtml(analyticalPunctuationMatch[1]);
+            const primaryCleanToken = analyticalPunctuationMatch[2];
+            const suffixSymbols = escapeHtml(analyticalPunctuationMatch[3]);
+
+            const lowercaseToken = primaryCleanToken.toLowerCase();
+            
+            // Advanced STEM matching algorithm mapping rules (checks direct equivalence, plurals, past tenses, continuous forms)
+            const matchesIdentifier = (lowercaseToken === coreRoot) || 
+                                     (coreRoot.length > 2 && lowercaseToken.startsWith(coreRoot)) ||
+                                     (coreRoot.endsWith('e') && lowercaseToken.startsWith(coreRoot.slice(0, -1)) && (lowercaseToken.endsWith('ing') || lowercaseToken.endsWith('ed')));
+                                     
+            const syntaxHookClass = matchesIdentifier ? 'compiled-keyword-match' : '';
+            const sanitizedArgumentString = primaryCleanToken.replace(/'/g, "\\'");
+
+            const builtSpanToken = primaryCleanToken 
+                ? `<span class="compilation-token ${syntaxHookClass}" onclick="triggerIndirectLookup('${sanitizedArgumentString}')">${escapeHtml(primaryCleanToken)}</span>`
+                : '';
+
+            return `${prefixSymbols}${builtSpanToken}${suffixSymbols}`;
+        }).join('');
+    }
+
+    function triggerIndirectLookup(extractedWord) {
+        document.getElementById('wordTerminalInput').value = extractedWord;
+        document.getElementById('predictorDropdownPanel').style.display = 'none';
+        executeCompilationPipeline();
+    }
+
+    function computeSyllablesLocally(wordString) {
+        let textVal = wordString.toLowerCase().trim();
+        if(textVal.length <= 3) return 1;
+        textVal = textVal.replace(/(?:es|ed|[^laeiouy]e)$/, '');
+        textVal = textVal.replace(/^y/, '');
+        const vowelMatches = textVal.match(/[aeiouy]{1,2}/g);
+        return vowelMatches ? vowelMatches.length : 1;
+    }
+
+    // CEFR Dynamic Tier Processing Core Matrix Configuration Tracker
+    function evaluateCefrTierProfiling(wordString, syllableCount) {
+        const len = wordString.length;
+        const cefrElement = document.getElementById('metricCefr');
+        
+        // Algorithmic estimation profiling strategy modeling structural metrics
+        if (len <= 4 && syllableCount === 1) {
+            cefrElement.className = "metric-val cefr-badge-a";
+            return "A1 / A2 Elementary";
+        } else if (len <= 7 && syllableCount <= 2) {
+            cefrElement.className = "metric-val cefr-badge-b";
+            return "B1 / B2 Intermediate";
+        } else {
+            cefrElement.className = "metric-val cefr-badge-c";
+            return "C1 / C2 Advanced Term";
+        }
+    }
+
+    function generateDiagnosticTelemetry(wordLiteral) {
+        const boundaryLength = wordLiteral.length;
+        const totalSyllables = computeSyllablesLocally(wordLiteral);
+        
+        let algorithmicComplexity = "O(1) Standard";
+        if (boundaryLength > 10) algorithmicComplexity = "O(N) Complex AST";
+        else if (boundaryLength > 6) algorithmicComplexity = "O(log N) Mid-Tier";
+
+        document.getElementById('metricComplexity').innerText = algorithmicComplexity;
+        document.getElementById('metricLength').innerText = `${boundaryLength} Units`;
+        document.getElementById('metricRatio').innerText = `${totalSyllables} Syllable${totalSyllables > 1 ? 's' : ''}`;
+        
+        document.getElementById('metricCefr').innerText = evaluateCefrTierProfiling(wordLiteral, totalSyllables);
+    }
+
+    function processSemanticThemeHook(posString) {
+        if (posString.includes("noun")) return "noun-theme";
+        if (posString.includes("verb")) return "verb-theme";
+        if (posString.includes("adj")) return "adjective-theme";
+        if (posString.includes("adv")) return "adverb-theme";
+        return "fallback-theme";
+    }
+
+    function renderHistoryLedger() {
+        const storageElement = document.getElementById('historyLedgerContainer');
+        storageElement.innerHTML = '';
+        if (store.history.length === 0) {
+            storageElement.innerHTML = '<li class="ledger-empty">Ledger stack is null.</li>';
+            return;
+        }
+        store.history.forEach(entryNode => {
+            const itemElement = document.createElement('li');
+            itemElement.className = 'ledger-item';
+            itemElement.innerHTML = `
+                <span>${escapeHtml(entryNode.word)}</span>
+                <span class="ledger-badge">0x${entryNode.count.toString(16).toUpperCase().padStart(2, '0')}</span>
+            `;
+            itemElement.onclick = () => triggerIndirectLookup(entryNode.word.replace(/'/g, "\\'"));
+            storageElement.appendChild(itemElement);
+        });
+    }
+
+    async function executeCompilationPipeline(skipAudio = false) {
+        let executionInput = document.getElementById('wordTerminalInput').value.trim();
+        if (!executionInput) return;
+
+        if (!skipAudio) AudioPipeline.playSuccess();
+
+        if (pipelineAbortController) {
+            pipelineAbortController.abort();
+        }
+        pipelineAbortController = new AbortController();
+        const threadSignalToken = pipelineAbortController.signal;
+
+        const dynamicTokens = executionInput.split(/\s+/);
+        const processingKeyword = dynamicTokens[dynamicTokens.length - 1].replace(/[.,\/#!$%\^&\*;:{}=\_`~()""']/g, "");
+
+        document.getElementById('predictorDropdownPanel').style.display = 'none';
+        const displayWrapper = document.getElementById('stageLayoutWrapper');
+        const visualErrorLog = document.getElementById('errorLogCard');
+        const syntaxTreeContainer = document.getElementById('syntaxTreeOutput');
+        const paradigmEngineContainer = document.getElementById('paradigmEngineOutput');
+
+        displayWrapper.style.display = 'none';
+        visualErrorLog.style.display = 'none';
+        syntaxTreeContainer.innerHTML = '<div class="terminal-loading-state">SYSTEM_INFO: Resolving asynchronous abstract language parameters...</div>';
+        paradigmEngineContainer.innerHTML = '<div class="terminal-loading-state">SYSTEM: Generating real-time examples...</div>';
+
+        try {
+            let rootDataset = null;
+            
+            try {
+                const networkResponse = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(processingKeyword)}`, { signal: threadSignalToken });
+                if (networkResponse.ok) {
+                    const payloadArray = await networkResponse.json();
+                    rootDataset = payloadArray[0];
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') throw e;
+                console.warn("Primary API pipeline dropped. Engaging Layer-2 Directory Mirror.");
+            }
+
+            if (!rootDataset) {
+                const mirrorResponse = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(processingKeyword)}&md=d&max=1`, { signal: threadSignalToken });
+                const mirrorArray = await mirrorResponse.json();
+                
+                if (mirrorArray.length > 0 && mirrorArray[0].defs) {
+                    const rawNode = mirrorArray[0];
+                    rootDataset = {
+                        word: rawNode.word,
+                        phonetic: `/${rawNode.word}/`,
+                        meanings: Object.values(rawNode.defs.reduce((acc, currentDef) => {
+                            const splitIdx = currentDef.indexOf("\t");
+                            const rawPos = splitIdx !== -1 ? currentDef.substring(0, splitIdx) : "noun";
+                            const trueDef = splitIdx !== -1 ? currentDef.substring(splitIdx + 1) : currentDef;
+                            
+                            const normalizedPos = rawPos === "v" ? "verb" : rawPos === "n" ? "noun" : rawPos === "adj" ? "adjective" : rawPos === "adv" ? "adverb" : "noun";
+                            
+                            if (!acc[normalizedPos]) {
+                                acc[normalizedPos] = { partOfSpeech: normalizedPos, definitions: [] };
+                            }
+                            acc[normalizedPos].definitions.push({ definition: trueDef, synonyms: [], antonyms: [] });
+                            return acc;
+                        }, {}))
+                    };
+                }
+            }
+
+            if (!rootDataset) throw new Error("Target array empty.");
+
+            const unifiedBaseTranslation = await executeAtomicTranslationFetch(rootDataset.word, 'vi', threadSignalToken);
+            if (threadSignalToken.aborted) return;
+
+            document.getElementById('metaDisplayWord').innerText = rootDataset.word;
+            document.getElementById('metaDisplayViLiteral').innerText = `${unifiedBaseTranslation}`;
+            document.getElementById('metaDisplayPhonetic').innerText = rootDataset.phonetic || (rootDataset.phonetics && rootDataset.phonetics.find(p => p.text)?.text) || `/${rootDataset.word}/`;
+
+            generateDiagnosticTelemetry(rootDataset.word);
+            dispatch({ type: 'SET_ACTIVE_TARGET', payload: { word: rootDataset.word, data: rootDataset } });
+
+            let compiledHtmlTree = '';
+
+            if (rootDataset.origin) {
+                const vietnameseOriginText = await executeAtomicTranslationFetch(rootDataset.origin, 'vi', threadSignalToken);
+                compiledHtmlTree += `
+                    <div class="syntax-boundary-node">
+                        <div class="syntax-node-header fallback-theme">Etymology (Nguồn gốc lịch sử)</div>
+                        <div class="compilation-card-row">
+                            <div class="split-compilation-grid">
+                                <div class="block-en-source">
+                                    <div class="compilation-block-title">Historical Root Trace</div>
+                                    <p class="syntax-literal-text">${escapeHtml(rootDataset.origin)}</p>
+                                </div>
+                                <div class="block-vi-target">
+                                    <div class="compilation-block-title">Translated Etymology</div>
+                                    <p class="syntax-literal-text">${escapeHtml(vietnameseOriginText)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            for (const functionalMeaning of rootDataset.meanings) {
+                const standardizedPos = functionalMeaning.partOfSpeech.toLowerCase();
+                let multiLingualPosLabel = posTranslationMap[standardizedPos];
+                
+                if (!multiLingualPosLabel) {
+                    multiLingualPosLabel = await executeAtomicTranslationFetch(functionalMeaning.partOfSpeech, 'vi', threadSignalToken);
+                    posTranslationMap[standardizedPos] = multiLingualPosLabel; 
+                }
+
+                const functionalThemeClass = processSemanticThemeHook(standardizedPos);
+                compiledHtmlTree += `
+                    <div class="syntax-boundary-node">
+                        <div class="syntax-node-header ${functionalThemeClass}">
+                            ${escapeHtml(functionalMeaning.partOfSpeech)} (${escapeHtml(multiLingualPosLabel)})
+                        </div>
+                `;
+
+                const operationalStructuralPromises = functionalMeaning.definitions.map(async (definitionNode) => {
+                    const compiledViDefinition = await executeAtomicTranslationFetch(definitionNode.definition, 'vi', threadSignalToken);
+                    let compiledViExample = '';
+                    if (definitionNode.example) {
+                        compiledViExample = await executeAtomicTranslationFetch(definitionNode.example, 'vi', threadSignalToken);
+                    }
+                    
+                    const alternativeSynsets = definitionNode.synonyms || functionalMeaning.synonyms || [];
+                    const opposingAntonyms = definitionNode.antonyms || functionalMeaning.antonyms || [];
+
+                    const cleanDefEn = definitionNode.definition.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const cleanDefVi = compiledViDefinition.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const cleanExEn = definitionNode.example ? definitionNode.example.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+                    const cleanExVi = compiledViExample ? compiledViExample.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "";
+
+                    return `
+                        <div class="compilation-card-row">
+                            <button class="btn-action-flashcard" onclick="exportToAnkiFlashcard('${rootDataset.word}', '${cleanDefVi}', '${cleanExEn}', '${cleanExVi}')">Anki</button>
+                            <div class="split-compilation-grid">
+                                <div class="block-en-source">
+                                    <div class="compilation-block-title">Source Specification</div>
+                                    <p class="syntax-literal-text">${abstractLexicalCompilation(definitionNode.definition, rootDataset.word)}</p>
+                                </div>
+                                <div class="block-vi-target">
+                                    <div class="compilation-block-title">Compiled Target Equivalence</div>
+                                    <p class="syntax-literal-text">${escapeHtml(compiledViDefinition)}</p>
+                                </div>
+                            </div>
+                            ${definitionNode.example ? `
+                                <div class="context-sandbox-box">
+                                    <div class="sandbox-en"><strong>Trace:</strong> ${abstractLexicalCompilation(definitionNode.example, rootDataset.word)}</div>
+                                    <div class="sandbox-vi"><strong>Log:</strong> ${escapeHtml(compiledViExample)}</div>
+                                </div>
+                            ` : ''}
+                            
+                            ${(alternativeSynsets.length > 0 || opposingAntonyms.length > 0) ? `
+                                <div class="synset-matrix-wrapper">
+                                    ${alternativeSynsets.length > 0 ? `
+                                        <div class="synset-row synonyms">
+                                            <div class="synset-title">Synset Pointers (Đồng nghĩa)</div>
+                                            <div class="synset-token-vault">
+                                                ${alternativeSynsets.slice(0, 5).map(synWord => `<span class="synset-node-tag" onclick="triggerIndirectLookup('${synWord.replace(/'/g, "\\'")}')">${escapeHtml(synWord)}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    ${opposingAntonyms.length > 0 ? `
+                                        <div class="synset-row antonyms">
+                                            <div class="synset-title">Antonym Pointers (Trái nghĩa)</div>
+                                            <div class="synset-token-vault">
+                                                ${opposingAntonyms.slice(0, 5).map(antWord => `<span class="synset-node-tag" onclick="triggerIndirectLookup('${antWord.replace(/'/g, "\\'")}')">${escapeHtml(antWord)}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                const analyticalResolvedCardStrings = await Promise.all(operationalStructuralPromises);
+                compiledHtmlTree += analyticalResolvedCardStrings.join('') + `</div>`; 
+            }
+
+            if (threadSignalToken.aborted) return;
+
+            syntaxTreeContainer.innerHTML = compiledHtmlTree;
+            displayWrapper.style.display = 'block';
+            dispatch({ type: 'COMMIT_HISTORY_ENTRY', payload: rootDataset.word });
+
+            if (typeof window.evaluateConcurrentParadigmMatrix === 'function') {
+                await window.evaluateConcurrentParadigmMatrix(rootDataset.word, threadSignalToken);
+            }
+
+        } catch (fault) {
+            if (fault.name === 'AbortError') return;
+            console.error(fault);
+            syntaxTreeContainer.innerHTML = '';
+            visualErrorLog.style.display = 'block';
+        }
+    }
+
+    async function executeAtomicTranslationFetch(evaluationString, structuralTargetLang, threadSignalToken = null) {
+        if (!evaluationString || !evaluationString.trim()) return "";
+        
+        const dynamicHashKey = `${structuralTargetLang}:${evaluationString.trim()}`;
+        if (store.cache[dynamicHashKey]) {
+            return store.cache[dynamicHashKey];
+        }
+
+        try {
+            const fetchOptions = threadSignalToken ? { signal: threadSignalToken } : {};
+            const routingQuery = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${structuralTargetLang}&dt=t&q=${encodeURIComponent(evaluationString)}`, fetchOptions);
+            
+            if (!routingQuery.ok) throw new Error("Network interception error.");
+            const conversionNodeMap = await routingQuery.json();
+            
+            if (!conversionNodeMap || !conversionNodeMap[0]) return 'Linguistic syntax map empty.';
+            const flattenedOutputString = conversionNodeMap[0].map(segmentLine => segmentLine[0]).join('');
+            
+            dispatch({
+                type: 'COMMIT_TRANSLATION_CACHE',
+                payload: { cacheKey: dynamicHashKey, payloadString: flattenedOutputString }
+            });
+            
+            return flattenedOutputString;
+        } catch (systemException) {
+            if (systemException.name === 'AbortError') throw systemException;
+            return 'Linguistic map allocation fault.';
+        }
+    }
+
+    function triggerVoiceSynthesis(throttleVelocity) {
+        const targetedTxt = document.getElementById('metaDisplayWord').innerText;
+        if (targetedTxt && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utteranceObject = new SpeechSynthesisUtterance(targetedTxt);
+            if (activeSystemVoice) utteranceObject.voice = activeSystemVoice;
+            utteranceObject.rate = throttleVelocity;
+            utteranceObject.pitch = 1.0; 
+            window.speechSynthesis.speak(utteranceObject);
+        }
+    }
+
+    window.executeCompilationPipeline = executeCompilationPipeline;
+    window.triggerVoiceSynthesis = triggerVoiceSynthesis;
+    window.triggerIndirectLookup = triggerIndirectLookup;
+    window.injectPredictedValue = injectPredictedValue;
+    window.dispatch = dispatch;
+</script>
+</body>
+</html>
