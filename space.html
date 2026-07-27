@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>L U N A R   L A N D E R   P R O</title>
+  <title>L U N A R   &   E A R T H   E X P L O R E R</title>
   <style>
     * {
       box-sizing: border-box;
@@ -32,11 +33,9 @@
     }
 
     canvas {
-      background-color: #000000;
       touch-action: none;
     }
 
-    /* Monochrome Vector HUD */
     .hud {
       position: absolute;
       top: 20px;
@@ -47,7 +46,7 @@
       pointer-events: none;
       font-size: 13px;
       letter-spacing: 2px;
-      text-shadow: 0 0 2px #ffffff;
+      text-shadow: 0 0 3px #000000;
     }
 
     .hud-column {
@@ -62,16 +61,40 @@
     }
 
     .warning {
-      color: #888888;
+      color: #ff5555;
       animation: blink 0.4s infinite alternate;
     }
 
-    @keyframes blink {
-      0% { opacity: 0.2; }
-      100% { opacity: 1; }
+    #flight-progress-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      text-align: center;
+      pointer-events: none;
     }
 
-    /* Touch Controls */
+    #progress-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+
+    #progress-bar-outer {
+      width: 100%;
+      height: 8px;
+      border: 1px solid #ffffff;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    #progress-bar-inner {
+      width: 0%;
+      height: 100%;
+      background: #ffffff;
+      transition: width 0.2s linear;
+    }
+
     .touch-controls {
       position: absolute;
       bottom: 25px;
@@ -88,7 +111,7 @@
       height: 100%;
       border: 1px solid rgba(255, 255, 255, 0.4);
       border-radius: 2px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.4);
       color: rgba(255, 255, 255, 0.8);
       display: flex;
       align-items: center;
@@ -104,7 +127,6 @@
       color: #ffffff;
     }
 
-    /* Message Screen */
     #message-overlay {
       position: absolute;
       top: 50%;
@@ -116,11 +138,11 @@
       border: 1px solid #ffffff;
       padding: 35px 50px;
       border-radius: 0px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
     }
 
     #message-title {
-      font-size: 24px;
+      font-size: 22px;
       margin-bottom: 15px;
       letter-spacing: 6px;
     }
@@ -159,29 +181,36 @@
 
     <div class="hud">
       <div class="hud-column">
-        <div>SCORE: <span id="score" class="hud-value">0</span></div>
+        <div>LOCATION: <span id="location" class="hud-value">MOON SURFACE</span></div>
         <div>FUEL: <span id="fuel" class="hud-value">100%</span></div>
-        <div>STUNTS: <span id="flips" class="hud-value">0</span></div>
+        <div>METEORS DODGED: <span id="meteors-dodged" class="hud-value">0</span></div>
       </div>
       <div class="hud-column" style="text-align: right;">
-        <div>ALT: <span id="altitude" class="hud-value">0</span></div>
+        <div>ALTITUDE: <span id="altitude" class="hud-value">0 m</span></div>
         <div>H-SPD: <span id="hspeed" class="hud-value">0.0</span></div>
         <div>V-SPD: <span id="vspeed" class="hud-value">0.0</span></div>
         <div>TILT: <span id="tilt" class="hud-value">0°</span></div>
       </div>
     </div>
 
+    <div id="flight-progress-container">
+      <div id="progress-label">TRANSIT PROGRESS: 0%</div>
+      <div id="progress-bar-outer">
+        <div id="progress-bar-inner"></div>
+      </div>
+    </div>
+
     <div id="message-overlay">
-      <div id="message-title">L U N A R   L A N D E R</div>
+      <div id="message-title">EARTH-MOON TRANSIT SYSTEM</div>
       <div id="message-sub">
-        APOLLO DESCENT FLIGHT CONTROL SYSTEM<br><br>
-        Touch down safely on target landing pads.<br>
-        Keep vertical velocity under <b>2.0</b> and tilt angle under <b>12°</b>.<br><br>
-        <b>FLIGHT CONTROLS:</b><br>
-        [W / UP ARROW] Main Descent Engine<br>
+        1. <b>Land safely</b> on a landing pad first.<br>
+        2. Fly high up out of the sky to launch into deep space.<br>
+        3. Dodge meteors during the 20-minute flight to reach Earth.<br><br>
+        <b>CONTROLS:</b><br>
+        [W / UP ARROW] Main Thrusters<br>
         [A / D / LEFT / RIGHT] Attitude RCS Thrusters
       </div>
-      <button class="btn-action" id="start-btn">INITIATE DESCENT</button>
+      <button class="btn-action" id="start-btn">START MISSION</button>
     </div>
 
     <div class="touch-controls">
@@ -195,10 +224,9 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // UI Elements
-    const scoreEl = document.getElementById('score');
+    const locationEl = document.getElementById('location');
     const fuelEl = document.getElementById('fuel');
-    const flipsEl = document.getElementById('flips');
+    const meteorsDodgedEl = document.getElementById('meteors-dodged');
     const altEl = document.getElementById('altitude');
     const hSpeedEl = document.getElementById('hspeed');
     const vSpeedEl = document.getElementById('vspeed');
@@ -207,6 +235,8 @@
     const msgTitle = document.getElementById('message-title');
     const msgSub = document.getElementById('message-sub');
     const startBtn = document.getElementById('start-btn');
+    const progressLabel = document.getElementById('progress-label');
+    const progressBarInner = document.getElementById('progress-bar-inner');
 
     let width, height;
 
@@ -219,7 +249,6 @@
     }
     window.addEventListener('resize', resize);
 
-    // Audio Synthesizer (Web Audio API)
     let audioCtx = null;
     let thrustNoiseNode = null;
     let thrustGainNode = null;
@@ -228,7 +257,6 @@
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Main Thruster Sound Generator
         const bufferSize = audioCtx.sampleRate * 2;
         const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const output = noiseBuffer.getChannelData(0);
@@ -307,7 +335,6 @@
       osc.stop(audioCtx.currentTime + 0.5);
     }
 
-    // Input State
     const keys = { left: false, right: false, thrust: false };
 
     window.addEventListener('keydown', (e) => {
@@ -352,29 +379,36 @@
     setupTouch('btn-thrust', 'thrust');
     setupTouch('btn-right', 'right');
 
-    // Constants
-    const GRAVITY = 0.022;
+    const GRAVITY_SURFACE = 0.022;
+    const GRAVITY_SPACE = 0.003; // Reduced space gravity so you can fly up easily
     const THRUST = 0.06;
     const ROTATION_SPEED = 0.05;
     const SAFE_SPEED = 2.0;
     const SAFE_ANGLE = 12 * (Math.PI / 180);
+    
+    // 1200 seconds = 20 minutes space transit
+    const TOTAL_TRANSIT_REQUIRED = 1200; 
 
+    let currentWorld = 'MOON'; 
+    let travelDirection = 'TO_EARTH';
+    let transitTime = 0;
     let gameState = 'START';
     let score = 0;
+    let meteorsDodged = 0;
     let particles = [];
     let stars = [];
-    let craters = [];
+    let meteors = [];
     let terrainPoints = [];
     let landingPads = [];
     let screenShake = 0;
 
     function generateStars() {
       stars = [];
-      const count = Math.floor((width * height) / 2500);
+      const count = Math.floor((width * height) / 2000);
       for (let i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * width,
-          y: Math.random() * height * 0.75,
+          y: Math.random() * height,
           size: Math.random() < 0.85 ? 1 : 1.5,
           brightness: Math.random() * 0.7 + 0.3
         });
@@ -387,54 +421,54 @@
       vx: 0,
       vy: 0,
       angle: 0,
-      fuel: 100,
+      fuel: 1000,
       totalRotation: 0,
       flips: 0,
       reset: function() {
-        this.x = width * 0.15;
-        this.y = 80;
-        this.vx = 1.8;
-        this.vy = 0;
-        this.angle = Math.PI / 2;
-        this.fuel = 100;
+        this.x = width * 0.3; // Align nicely over first landing pad
+        this.y = height - 250; // Spawn near ground so landing is easy first
+        this.vx = 0;
+        this.vy = 0.2;
+        this.angle = 0;
+        this.fuel = 1000;
         this.totalRotation = 0;
         this.flips = 0;
       }
     };
 
-    function generateTerrain() {
+    function generateTerrain(worldType) {
       terrainPoints = [];
       landingPads = [];
-      craters = [];
 
       const segments = 45;
       const step = width / segments;
       let currentY = height - 120;
 
-      const pad1Index = Math.floor(segments * 0.3);
-      const pad2Index = Math.floor(segments * 0.72);
+      const pad1Index = Math.floor(segments * 0.25);
+      const pad2Index = Math.floor(segments * 0.7);
 
       for (let i = 0; i <= segments; i++) {
         let x = i * step;
 
-        if (i === pad1Index || i === pad1Index + 1 || i === pad2Index || i === pad2Index + 1) {
-          // Flatten pad
+        if (i === pad1Index || i === pad1Index + 1 || i === pad1Index + 2 || i === pad2Index || i === pad2Index + 1 || i === pad2Index + 2) {
+          // Flat pad area
         } else {
-          currentY += (Math.random() - 0.5) * 60;
-          currentY = Math.max(height - 230, Math.min(height - 40, currentY));
+          currentY += (Math.random() - 0.5) * (worldType === 'MOON' ? 60 : 40);
+          currentY = Math.max(height - 220, Math.min(height - 50, currentY));
         }
 
         terrainPoints.push({ x, y: currentY });
       }
 
       function makePad(index, multiplier) {
-        if (!terrainPoints[index] || !terrainPoints[index + 2]) return;
+        if (!terrainPoints[index] || !terrainPoints[index + 3]) return;
         const y = terrainPoints[index].y;
         terrainPoints[index + 1].y = y;
         terrainPoints[index + 2].y = y;
+        terrainPoints[index + 3].y = y;
         landingPads.push({
           x1: terrainPoints[index].x,
-          x2: terrainPoints[index + 2].x,
+          x2: terrainPoints[index + 3].x,
           y: y,
           multiplier: multiplier
         });
@@ -442,17 +476,82 @@
 
       makePad(pad1Index, 2);
       makePad(pad2Index, 4);
+    }
 
-      // Craters on terrain
-      for (let i = 2; i < terrainPoints.length - 3; i += 4) {
-        if (Math.random() < 0.4 && !landingPads.some(p => terrainPoints[i].x >= p.x1 && terrainPoints[i].x <= p.x2)) {
-          craters.push({
-            x: terrainPoints[i].x,
-            y: terrainPoints[i].y + 2,
-            radius: Math.random() * 12 + 6
-          });
-        }
+    function spawnMeteor() {
+      if (currentWorld !== 'SPACE') return;
+      const radius = Math.random() * 14 + 8;
+      const side = Math.random() < 0.5 ? -20 : width + 20;
+      meteors.push({
+        x: side,
+        y: Math.random() * (height * 0.75) + 30,
+        vx: (side < 0 ? 1 : -1) * (Math.random() * 2 + 1),
+        vy: (Math.random() - 0.5) * 1.5,
+        radius: radius,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.05
+      });
+    }
+
+    function updateMeteors() {
+      if (currentWorld !== 'SPACE') {
+        meteors = [];
+        return;
       }
+
+      if (Math.random() < 0.04 && meteors.length < 12) {
+        spawnMeteor();
+      }
+
+      meteors.forEach(m => {
+        m.x += m.vx;
+        m.y += m.vy;
+        m.rot += m.vRot;
+
+        const dx = lander.x - m.x;
+        const dy = lander.y - m.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < m.radius + 10) {
+          gameState = 'CRASHED';
+          setThrustSound(false);
+          playExplosionSound();
+          screenShake = 20;
+          createExplosion(lander.x, lander.y);
+          showOverlay("METEOR IMPACT!", "A meteor destroyed your lander in space!");
+        }
+      });
+
+      const activeCount = meteors.length;
+      meteors = meteors.filter(m => m.x >= -50 && m.x <= width + 50 && m.y >= -50 && m.y <= height + 50);
+      if (activeCount > meteors.length) {
+        meteorsDodged++;
+        meteorsDodgedEl.textContent = meteorsDodged;
+      }
+    }
+
+    function drawMeteors() {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      meteors.forEach(m => {
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(m.rot);
+
+        ctx.beginPath();
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2;
+          const r = m.radius * (0.8 + Math.sin(i * 3) * 0.2);
+          const px = Math.cos(a) * r;
+          const py = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+      });
     }
 
     function createExplosion(x, y, dustOnly = false) {
@@ -491,7 +590,7 @@
     }
 
     function checkTerrainCollision() {
-      if (!terrainPoints || terrainPoints.length === 0) return;
+      if (currentWorld === 'SPACE' || !terrainPoints || terrainPoints.length === 0) return;
 
       for (let i = 0; i < terrainPoints.length - 1; i++) {
         const p1 = terrainPoints[i];
@@ -502,7 +601,7 @@
           const groundY = p1.y + t * (p2.y - p1.y);
 
           const currentAlt = Math.max(0, Math.round(groundY - lander.y - 14));
-          altEl.textContent = currentAlt;
+          altEl.textContent = `${currentAlt} m`;
 
           if (lander.y + 14 >= groundY) {
             const speed = Math.sqrt(lander.vx * lander.vx + lander.vy * lander.vy);
@@ -514,24 +613,65 @@
               gameState = 'LANDED';
               setThrustSound(false);
               playChimeSound();
-              const basePoints = 150 * pad.multiplier;
-              const flipBonus = lander.flips * 250;
-              const fuelBonus = Math.round(lander.fuel * 3);
-              const earned = basePoints + flipBonus + fuelBonus;
-              score += earned;
+              const basePoints = 200 * pad.multiplier;
+              score += basePoints;
 
               createExplosion(lander.x, lander.y + 12, true);
-              showOverlay("TOUCHDOWN SUCCESSFUL", `PAD MULTIPLIER: x${pad.multiplier}<br>STUNT BONUS: +${flipBonus}<br>TOTAL SCORE: +${earned}`);
+              showOverlay(`SUCCESSFUL LANDING ON ${currentWorld}!`, `PAD MULTIPLIER: x${pad.multiplier}<br>You can now thrust straight up into space!`);
             } else {
               gameState = 'CRASHED';
               setThrustSound(false);
               playExplosionSound();
               screenShake = 15;
               createExplosion(lander.x, lander.y);
-              showOverlay("MODULE DESTROYED", speed > SAFE_SPEED ? "IMPACT VELOCITY EXCEEDED" : "ATTITUDE ANGLE CRITICAL");
+              showOverlay("CRASH LANDED!", speed > SAFE_SPEED ? "LANDING SPEED TOO FAST" : "LANDING ANGLE TOO STEEP");
             }
           }
           break;
+        }
+      }
+    }
+
+    function updateWorldTransitions() {
+      // 1. Launching UP out of atmosphere into space
+      if ((currentWorld === 'MOON' || currentWorld === 'EARTH') && lander.y < -15) {
+        travelDirection = currentWorld === 'MOON' ? 'TO_EARTH' : 'TO_MOON';
+        currentWorld = 'SPACE';
+        
+        lander.y = height * 0.6;
+        lander.vy = -0.5;
+        locationEl.textContent = `DEEP SPACE (${travelDirection === 'TO_EARTH' ? 'BOUND FOR EARTH' : 'BOUND FOR MOON'})`;
+      }
+
+      // 2. Flying in space -> Smooth space boundaries and 20 min flight timer
+      if (currentWorld === 'SPACE') {
+        // Prevent going off bottom or top of screen in space while allowing upward flight
+        if (lander.y < 40) lander.y = 40;
+        if (lander.y > height - 40) lander.y = height - 40;
+
+        transitTime += 1 / 60;
+        const progressPercent = Math.min(100, Math.floor((transitTime / TOTAL_TRANSIT_REQUIRED) * 100));
+        
+        const remainingSeconds = Math.max(0, Math.ceil(TOTAL_TRANSIT_REQUIRED - transitTime));
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        const timeFormatted = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+        progressLabel.textContent = `TRANSIT TO ${travelDirection === 'TO_EARTH' ? 'EARTH' : 'MOON'}: ${progressPercent}% (ETA: ${timeFormatted})`;
+        progressBarInner.style.width = `${progressPercent}%`;
+
+        altEl.textContent = `${Math.floor((transitTime / TOTAL_TRANSIT_REQUIRED) * 384400)} km`;
+
+        // Flight completed -> Transition to surface
+        if (transitTime >= TOTAL_TRANSIT_REQUIRED) {
+          currentWorld = travelDirection === 'TO_EARTH' ? 'EARTH' : 'MOON';
+          generateTerrain(currentWorld);
+          transitTime = 0;
+          lander.y = 30;
+          lander.vy = 0.5;
+          locationEl.textContent = `${currentWorld} ATMOSPHERE`;
+          progressLabel.textContent = `ARRIVED AT ${currentWorld}`;
+          progressBarInner.style.width = '100%';
         }
       }
     }
@@ -547,21 +687,19 @@
       if (keys.left) lander.angle -= ROTATION_SPEED;
       if (keys.right) lander.angle += ROTATION_SPEED;
 
-      let deltaAngle = lander.angle - lastAngle;
-      lander.totalRotation += deltaAngle;
-      lander.flips = Math.floor(Math.abs(lander.totalRotation) / (Math.PI * 2));
-      flipsEl.textContent = lander.flips;
-
       const isThrusting = keys.thrust && lander.fuel > 0;
       setThrustSound(isThrusting);
 
       if (isThrusting) {
         lander.vx += Math.sin(lander.angle) * THRUST;
         lander.vy -= Math.cos(lander.angle) * THRUST;
-        lander.fuel = Math.max(0, lander.fuel - 0.15);
+        lander.fuel = Math.max(0, lander.fuel - 0.08);
       }
 
-      lander.vy += GRAVITY;
+      // Dynamic gravity depending on location
+      const activeGravity = (currentWorld === 'SPACE') ? GRAVITY_SPACE : GRAVITY_SURFACE;
+      lander.vy += activeGravity;
+      
       lander.x += lander.vx;
       lander.y += lander.vy;
 
@@ -578,55 +716,61 @@
       tiltEl.className = Math.abs(angleDegrees) > 12 ? 'hud-value warning' : 'hud-value';
 
       fuelEl.textContent = `${Math.round(lander.fuel)}%`;
-      scoreEl.textContent = score;
 
+      updateMeteors();
+      updateWorldTransitions();
       checkTerrainCollision();
     }
 
     function draw() {
       ctx.save();
       
-      // Screen shake translation
       if (screenShake > 0.5) {
         const dx = (Math.random() - 0.5) * screenShake;
         const dy = (Math.random() - 0.5) * screenShake;
         ctx.translate(dx, dy);
       }
 
-      ctx.fillStyle = '#000000';
+      if (currentWorld === 'EARTH') {
+        ctx.fillStyle = '#0a3254';
+      } else if (currentWorld === 'MOON') {
+        ctx.fillStyle = '#050505';
+      } else {
+        ctx.fillStyle = '#000000';
+      }
       ctx.fillRect(0, 0, width, height);
 
-      // Starfield
-      ctx.fillStyle = '#ffffff';
-      stars.forEach(star => {
-        ctx.globalAlpha = star.brightness;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
-      });
-      ctx.globalAlpha = 1.0;
+      if (currentWorld !== 'EARTH') {
+        ctx.fillStyle = '#ffffff';
+        stars.forEach(star => {
+          ctx.globalAlpha = star.brightness;
+          ctx.fillRect(star.x, star.y, star.size, star.size);
+        });
+        ctx.globalAlpha = 1.0;
+      }
 
-      // Craters
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.lineWidth = 1;
-      craters.forEach(c => {
-        ctx.beginPath();
-        ctx.ellipse(c.x, c.y, c.radius, c.radius * 0.3, 0, 0, Math.PI);
-        ctx.stroke();
-      });
+      if (currentWorld === 'SPACE') {
+        drawMeteors();
+      }
 
-      // Terrain
-      if (terrainPoints && terrainPoints.length > 0) {
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
+      if (currentWorld !== 'SPACE' && terrainPoints && terrainPoints.length > 0) {
+        ctx.strokeStyle = currentWorld === 'EARTH' ? '#44aa44' : '#ffffff';
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
         for (let i = 1; i < terrainPoints.length; i++) {
           ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
         }
         ctx.stroke();
+
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.closePath();
+        ctx.fillStyle = currentWorld === 'EARTH' ? '#113311' : '#111111';
+        ctx.fill();
       }
 
-      // Landing Pads
-      if (landingPads && landingPads.length > 0) {
+      if (currentWorld !== 'SPACE' && landingPads && landingPads.length > 0) {
         landingPads.forEach(pad => {
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 4;
@@ -635,16 +779,14 @@
           ctx.lineTo(pad.x2, pad.y);
           ctx.stroke();
 
-          // Pad Text Marker
           ctx.fillStyle = '#ffffff';
           ctx.font = '10px Courier New';
-          ctx.fillText(`[ ${pad.multiplier}X ]`, (pad.x1 + pad.x2) / 2 - 16, pad.y + 16);
+          ctx.fillText(`[ ${pad.multiplier}X LANDING PAD ]`, (pad.x1 + pad.x2) / 2 - 45, pad.y + 16);
         });
       }
 
       drawParticles();
 
-      // Lander Craft
       if (gameState === 'PLAYING' || gameState === 'LANDED') {
         ctx.save();
         ctx.translate(lander.x, lander.y);
@@ -654,7 +796,6 @@
         ctx.fillStyle = '#ffffff';
         ctx.lineWidth = 1.2;
 
-        // Descent Stage
         ctx.beginPath();
         ctx.moveTo(-7, 2);
         ctx.lineTo(-9, 6);
@@ -665,7 +806,6 @@
         ctx.closePath();
         ctx.stroke();
 
-        // Ascent Cabin
         ctx.beginPath();
         ctx.moveTo(-6, 2);
         ctx.lineTo(-6, -6);
@@ -676,14 +816,6 @@
         ctx.closePath();
         ctx.stroke();
 
-        // Docking Port
-        ctx.beginPath();
-        ctx.moveTo(-2, -10);
-        ctx.lineTo(0, -13);
-        ctx.lineTo(2, -10);
-        ctx.stroke();
-
-        // Window
         ctx.beginPath();
         ctx.moveTo(-4, -6);
         ctx.lineTo(-2, -8);
@@ -691,7 +823,6 @@
         ctx.closePath();
         ctx.fill();
 
-        // Landing Gear
         ctx.beginPath();
         ctx.moveTo(-7, 8);
         ctx.lineTo(-13, 15);
@@ -703,7 +834,6 @@
         ctx.lineTo(15, 15);
         ctx.stroke();
 
-        // Main Thruster Plume
         if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING') {
           ctx.beginPath();
           ctx.moveTo(-4, 10);
@@ -712,7 +842,6 @@
           ctx.stroke();
         }
 
-        // RCS Side Plumes
         if (keys.left && gameState === 'PLAYING') {
           ctx.beginPath();
           ctx.moveTo(6, -4);
@@ -735,22 +864,36 @@
     function showOverlay(title, subtitle) {
       msgTitle.innerHTML = title;
       msgSub.innerHTML = subtitle;
-      startBtn.textContent = gameState === 'START' ? 'INITIATE DESCENT' : 'RE-LAUNCH';
+      startBtn.textContent = (gameState === 'START' || gameState === 'LANDED') ? 'RESUME / FLY UP' : 'RESTART';
       overlay.style.display = 'block';
     }
 
     function startGame() {
       initAudio();
       overlay.style.display = 'none';
-      generateTerrain();
+
+      if (gameState === 'LANDED') {
+        // Keep current position if resuming after landing
+        gameState = 'PLAYING';
+        return;
+      }
+
+      currentWorld = 'MOON';
+      locationEl.textContent = 'MOON SURFACE';
+      generateTerrain(currentWorld);
       lander.reset();
+      transitTime = 0;
+      meteorsDodged = 0;
+      meteorsDodgedEl.textContent = '0';
+      progressLabel.textContent = 'TRANSIT PROGRESS: 0%';
+      progressBarInner.style.width = '0%';
       gameState = 'PLAYING';
     }
 
     startBtn.addEventListener('click', startGame);
 
     resize();
-    generateTerrain();
+    generateTerrain('MOON');
 
     function loop() {
       update();
