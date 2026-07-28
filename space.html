@@ -205,7 +205,7 @@
       <div id="message-sub">
         1. <b>Land safely</b> on a landing pad first.<br>
         2. Fly up into deep space.<br>
-        3. Hold THRUST UP to boost fast toward Earth and dodge meteors!<br><br>
+        3. Steering controls are now super responsive for dodging meteors!<br><br>
         <b>CONTROLS:</b><br>
         [W / UP ARROW] Main Thrusters<br>
         [A / D / LEFT / RIGHT] Attitude RCS Thrusters
@@ -381,7 +381,7 @@
 
     const GRAVITY_SURFACE = 0.022;
     const THRUST = 0.08;
-    const ROTATION_SPEED = 0.05;
+    const ROTATION_SPEED = 0.08; // Increased rotation speed for easier turn
     const SAFE_SPEED = 2.0;
     const SAFE_ANGLE = 12 * (Math.PI / 180);
     
@@ -505,7 +505,6 @@
       meteors.forEach(m => {
         m.x += m.vx;
         
-        // Fast upward flight pushes meteors down rapidly
         if (keys.thrust && lander.fuel > 0) {
           m.y += m.vy + (Math.cos(lander.angle) * THRUST * 8);
         } else {
@@ -649,7 +648,6 @@
       }
 
       if (currentWorld === 'SPACE') {
-        // Thrusting advances the flight transit progress much faster!
         const thrustBonus = (keys.thrust && lander.fuel > 0) ? 3.0 : 1.0;
         transitTime += (1 / 60) * thrustBonus;
 
@@ -685,17 +683,23 @@
         return;
       }
 
-      if (keys.left) lander.angle -= ROTATION_SPEED;
-      if (keys.right) lander.angle += ROTATION_SPEED;
+      // Stronger side-to-side steering RCS thrust
+      if (keys.left) {
+        lander.angle -= ROTATION_SPEED;
+        if (currentWorld === 'SPACE') lander.vx -= 0.15;
+      }
+      if (keys.right) {
+        lander.angle += ROTATION_SPEED;
+        if (currentWorld === 'SPACE') lander.vx += 0.15;
+      }
 
       const isThrusting = keys.thrust && lander.fuel > 0;
       setThrustSound(isThrusting);
 
       if (isThrusting) {
-        lander.vx += Math.sin(lander.angle) * THRUST;
+        lander.vx += Math.sin(lander.angle) * THRUST * 1.5;
         
         if (currentWorld === 'SPACE') {
-          // Boosted high-speed upward flight in space (12x scroll multiplier)
           spaceOffsetY += Math.cos(lander.angle) * THRUST * 12;
         } else {
           lander.vy -= Math.cos(lander.angle) * THRUST;
@@ -704,7 +708,10 @@
         lander.fuel = Math.max(0, lander.fuel - 0.08);
       }
 
-      if (currentWorld !== 'SPACE') {
+      // Slight damping in space so controls feel snappy and responsive
+      if (currentWorld === 'SPACE') {
+        lander.vx *= 0.94;
+      } else {
         lander.vy += GRAVITY_SURFACE;
         lander.y += lander.vy;
       }
