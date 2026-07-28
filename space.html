@@ -811,7 +811,12 @@
       c.fillStyle = '#ffffff';
       c.lineWidth = 1.2;
 
+      const now = Date.now() * 0.008;
+
       if (SHIPS[id] && SHIPS[id].name === "TUNG TUNG ROCKET") {
+        const legWobble = Math.sin(now * 3) * 3;
+        const armWobble = Math.cos(now * 2.5) * 4;
+
         c.beginPath();
         c.moveTo(-6, -26);
         c.lineTo(6, -26);
@@ -838,14 +843,14 @@
         c.stroke();
 
         c.beginPath();
-        c.moveTo(-7, -8); c.lineTo(-12, -2); c.lineTo(-10, 4);
-        c.moveTo(7, -8); c.lineTo(13, -4);
-        c.moveTo(13, -16); c.lineTo(11, 8); c.lineTo(15, 8); c.lineTo(17, -16); c.closePath();
+        c.moveTo(-7, -8); c.lineTo(-12, -2 + armWobble); c.lineTo(-10, 4);
+        c.moveTo(7, -8); c.lineTo(13, -4 - armWobble);
+        c.moveTo(13, -16 + armWobble); c.lineTo(11, 8); c.lineTo(15, 8); c.lineTo(17, -16 + armWobble); c.closePath();
         c.stroke();
 
         c.beginPath();
-        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16);
-        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);
+        c.moveTo(-4, 8); c.lineTo(-6 + legWobble, 16); c.lineTo(-10 + legWobble, 16);
+        c.moveTo(4, 8);  c.lineTo(6 - legWobble, 16);  c.lineTo(10 - legWobble, 16);
         c.stroke();
 
         c.beginPath();
@@ -1329,7 +1334,7 @@
     function drawParticles() {
       ctx.fillStyle = '#ffffff';
       particles.forEach(p => {
-        ctx.globalAlpha = p.life;
+        ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillRect(p.x, p.y, p.size, p.size);
       });
       ctx.globalAlpha = 1.0;
@@ -1408,7 +1413,6 @@
 
         const ship = SHIPS[equippedShipIndex];
 
-        // FIXED: Distance and credits ONLY advance when actively thrusting with fuel!
         if (keys.thrust && lander.fuel > 0) {
           const thrustBonus = 3.0 * ship.speed;
           transitTime += (1 / 60) * thrustBonus;
@@ -1567,22 +1571,22 @@
 
         if (opp.isThrusting) {
           ctx.strokeStyle = '#ffffff';
-          ctx.beginPath();
+          ctx.fillStyle = '#ffffff';
+
           const isTungTung = SHIPS[opp.shipIndex] && SHIPS[opp.shipIndex].name === "TUNG TUNG ROCKET";
+          const variant = opp.shipIndex % 5;
+          const thrusterCount = (isTungTung || variant === 2 || variant === 4) ? 2 : 1;
           const flameY = isTungTung ? 24 : 10;
-          if (isTungTung) {
-            ctx.moveTo(-9, flameY);
-            ctx.lineTo(-7, flameY + Math.random() * 12 + 6);
-            ctx.lineTo(-5, flameY);
-            ctx.moveTo(5, flameY);
-            ctx.lineTo(7, flameY + Math.random() * 12 + 6);
-            ctx.lineTo(9, flameY);
-          } else {
-            ctx.moveTo(-4, flameY);
-            ctx.lineTo(0, flameY + Math.random() * 12 + 6);
-            ctx.lineTo(4, flameY);
+
+          for (let t = 0; t < thrusterCount; t++) {
+            const offX = thrusterCount === 2 ? (t === 0 ? -7 : 7) : 0;
+            const outerLen = Math.random() * 12 + 8;
+            ctx.beginPath();
+            ctx.moveTo(offX - 4, flameY);
+            ctx.lineTo(offX, flameY + outerLen);
+            ctx.lineTo(offX + 4, flameY);
+            ctx.stroke();
           }
-          ctx.stroke();
         }
 
         ctx.restore();
@@ -1605,7 +1609,6 @@
       if (!isRaceStarting) {
         const ship = SHIPS[equippedShipIndex];
 
-        // RCS steering & smooth direct lateral force
         const rcsPower = 0.08 * ship.speed;
         if (keys.left) {
           lander.angle -= 0.05;
@@ -1614,6 +1617,23 @@
         if (keys.right) {
           lander.angle += 0.05;
           lander.vx += rcsPower;
+        }
+
+        // DYNAMIC RCS GAS PLUMES
+        if (keys.left || keys.right) {
+          const dir = keys.left ? -1 : 1;
+          const sideX = lander.x + Math.cos(lander.angle) * (dir * 10);
+          const sideY = lander.y + Math.sin(lander.angle) * (dir * 10);
+          const rcsAngle = lander.angle + (dir === -1 ? Math.PI : 0) + (Math.random() - 0.5) * 0.3;
+          
+          particles.push({
+            x: sideX,
+            y: sideY,
+            vx: Math.cos(rcsAngle) * (Math.random() * 3 + 1),
+            vy: Math.sin(rcsAngle) * (Math.random() * 3 + 1),
+            life: 0.3,
+            size: Math.random() * 1.5 + 0.8
+          });
         }
 
         const isThrusting = keys.thrust && lander.fuel > 0;
@@ -1631,13 +1651,38 @@
           
           lander.fuel = Math.max(0, lander.fuel - (0.08 / ship.strength));
 
+          // DYNAMIC MAIN THRUST JET PARTICLES
+          const isTungTung = ship.name === "TUNG TUNG ROCKET";
+          const thrusterOffset = (isTungTung || (equippedShipIndex % 5 === 2) || (equippedShipIndex % 5 === 4)) ? [-7, 7] : [0];
+
+          thrusterOffset.forEach(offX => {
+            const flameBaseX = lander.x + Math.cos(lander.angle + Math.PI/2) * (isTungTung ? 22 : 12) + Math.cos(lander.angle) * offX;
+            const flameBaseY = lander.y + Math.sin(lander.angle + Math.PI/2) * (isTungTung ? 22 : 12) + Math.sin(lander.angle) * offX;
+
+            for (let p = 0; p < 2; p++) {
+              const pAngle = lander.angle + Math.PI/2 + (Math.random() - 0.5) * 0.4;
+              const pSpeed = Math.random() * 4 + 2 * ship.strength;
+              particles.push({
+                x: flameBaseX + (Math.random() - 0.5) * 4,
+                y: flameBaseY + (Math.random() - 0.5) * 4,
+                vx: Math.cos(pAngle) * pSpeed + lander.vx * 0.3,
+                vy: Math.sin(pAngle) * pSpeed + (currentWorld === 'SPACE' ? 0 : lander.vy * 0.3),
+                life: Math.random() * 0.4 + 0.4,
+                size: Math.random() * 2 + 1
+              });
+            }
+          });
+
+          // Engine micro-vibration
+          lander.x += (Math.random() - 0.5) * 0.8;
+          lander.y += (Math.random() - 0.5) * 0.8;
+
           if (ship.name === "TUNG TUNG ROCKET" && Date.now() - lastShoutoutTime > 400 && Math.random() < 0.25) {
             lastShoutoutTime = Date.now();
             spawnShoutout(lander.x, lander.y - 15);
           }
         }
 
-        // Velocity damping & inertia preservation
         if (currentWorld === 'SPACE') {
           lander.vx *= 0.995;
         } else {
@@ -1774,22 +1819,32 @@
 
         if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING' && !isRaceStarting) {
           ctx.strokeStyle = '#ffffff';
-          ctx.beginPath();
+          ctx.fillStyle = '#ffffff';
+          
           const isTungTung = SHIPS[equippedShipIndex] && SHIPS[equippedShipIndex].name === "TUNG TUNG ROCKET";
+          const variant = equippedShipIndex % 5;
+          const thrusterCount = (isTungTung || variant === 2 || variant === 4) ? 2 : 1;
           const flameY = isTungTung ? 24 : 10;
-          if (isTungTung) {
-            ctx.moveTo(-9, flameY);
-            ctx.lineTo(-7, flameY + Math.random() * 12 + 6);
-            ctx.lineTo(-5, flameY);
-            ctx.moveTo(5, flameY);
-            ctx.lineTo(7, flameY + Math.random() * 12 + 6);
-            ctx.lineTo(9, flameY);
-          } else {
-            ctx.moveTo(-4, flameY);
-            ctx.lineTo(0, flameY + Math.random() * 12 + 6);
-            ctx.lineTo(4, flameY);
+
+          for (let t = 0; t < thrusterCount; t++) {
+            const offX = thrusterCount === 2 ? (t === 0 ? -7 : 7) : 0;
+            const lenMultiplier = (SHIPS[equippedShipIndex].strength || 1.0);
+            const outerLen = (Math.random() * 14 + 10) * (0.8 + lenMultiplier * 0.2);
+            const innerLen = outerLen * 0.55;
+
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(offX - 4, flameY);
+            ctx.lineTo(offX, flameY + outerLen);
+            ctx.lineTo(offX + 4, flameY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(offX - 2, flameY);
+            ctx.lineTo(offX, flameY + innerLen);
+            ctx.lineTo(offX + 2, flameY);
+            ctx.fill();
           }
-          ctx.stroke();
         }
 
         ctx.restore();
