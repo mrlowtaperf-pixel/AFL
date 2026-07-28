@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -240,11 +241,18 @@
     }
 
     .ship-preview-canvas {
-      width: 80px;
-      height: 80px;
+      width: 90px;
+      height: 90px;
       background: #080808;
-      border: 1px solid #222222;
-      margin-bottom: 5px;
+      border: 1px solid #333333;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .ship-preview-canvas:hover {
+      border-color: #ffffff;
+      transform: scale(1.04);
     }
 
     .ship-name {
@@ -258,14 +266,63 @@
       color: #888888;
       width: 100%;
       text-align: left;
+      letter-spacing: 1px;
     }
 
     .ship-price {
       font-size: 11px;
       color: #ffffff;
       font-weight: bold;
-      margin-top: 5px;
+      margin-top: 4px;
       letter-spacing: 1px;
+    }
+
+    /* SHIP INSPECTOR MODAL */
+    #ship-inspector-overlay {
+      display: none;
+      z-index: 20;
+    }
+
+    .inspector-box {
+      border: 1px solid #ffffff;
+      background: #050505;
+      padding: 25px;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
+    }
+
+    #inspector-canvas {
+      width: 320px;
+      height: 220px;
+      background: #000000;
+      border: 1px solid #333333;
+    }
+
+    .inspector-specs {
+      width: 100%;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px solid #222222;
+      padding-top: 12px;
+    }
+
+    .inspector-spec-row {
+      display: flex;
+      justify-content: space-between;
+      color: #aaaaaa;
+    }
+
+    .inspector-spec-val {
+      color: #ffffff;
+      font-weight: bold;
     }
 
     .touch-controls {
@@ -326,7 +383,7 @@
       <div id="progress-bar-outer">
         <div id="progress-bar-inner"></div>
       </div>
-      <button id="turnaround-btn" class="redirect-btn">↩ TURN AROUND MID-FLIGHT</button>
+      <button id="turnaround-btn" class="redirect-btn">TURN AROUND MID-FLIGHT</button>
     </div>
 
     <div id="main-menu" class="screen-overlay">
@@ -339,13 +396,43 @@
     </div>
 
     <div id="shop-screen" class="screen-overlay">
-      <div class="menu-title">HANGAR & TECH TREE</div>
+      <div class="menu-title">Rockets Shop</div>
       <div class="credits-display">AVAILABLE CREDITS: <span id="shop-credits">$0</span></div>
       
       <div class="shop-grid" id="shop-grid"></div>
 
       <div style="margin-top: 20px;">
         <button class="btn-action" id="shop-back-btn">BACK TO MENU</button>
+      </div>
+    </div>
+
+    <div id="ship-inspector-overlay" class="screen-overlay">
+      <div class="inspector-box">
+        <div class="menu-title" id="inspector-title" style="font-size: 18px; margin-bottom: 0;">MK-1 SCOUT</div>
+        <div style="font-size: 10px; color: #888888; letter-spacing: 2px;">FLIGHT DEMONSTRATION</div>
+        
+        <canvas id="inspector-canvas" width="320" height="220"></canvas>
+
+        <div class="inspector-specs">
+          <div class="inspector-spec-row">
+            <span>MAX VELOCITY:</span>
+            <span id="insp-speed" class="inspector-spec-val">1.0x</span>
+          </div>
+          <div class="inspector-spec-row">
+            <span>HULL INTEGRITY:</span>
+            <span id="insp-durability" class="inspector-spec-val">1.0x</span>
+          </div>
+          <div class="inspector-spec-row">
+            <span>THRUSTER OUTPUT:</span>
+            <span id="insp-strength" class="inspector-spec-val">1.0x</span>
+          </div>
+          <div class="inspector-spec-row">
+            <span>THRUST RATIO:</span>
+            <span id="insp-ratio" class="inspector-spec-val">HIGH</span>
+          </div>
+        </div>
+
+        <button class="btn-action" id="inspector-close-btn" style="width: 100%; margin-top: 5px;">CLOSE PREVIEW</button>
       </div>
     </div>
 
@@ -359,9 +446,9 @@
     </div>
 
     <div class="touch-controls">
-      <div class="touch-btn" id="btn-left">◀ RCS</div>
-      <div class="touch-btn" id="btn-thrust">THRUST ▲</div>
-      <div class="touch-btn" id="btn-right">RCS ▶</div>
+      <div class="touch-btn" id="btn-left">RCS L</div>
+      <div class="touch-btn" id="btn-thrust">THRUST</div>
+      <div class="touch-btn" id="btn-right">RCS R</div>
     </div>
   </div>
 
@@ -388,6 +475,18 @@
     const progressLabel = document.getElementById('progress-label');
     const progressBarInner = document.getElementById('progress-bar-inner');
     const turnaroundBtn = document.getElementById('turnaround-btn');
+
+    // Inspector UI Elements
+    const inspectorOverlay = document.getElementById('ship-inspector-overlay');
+    const inspectorCanvas = document.getElementById('inspector-canvas');
+    const inspectorCtx = inspectorCanvas.getContext('2d');
+    const inspectorTitle = document.getElementById('inspector-title');
+    const inspSpeed = document.getElementById('insp-speed');
+    const inspDurability = document.getElementById('insp-durability');
+    const inspStrength = document.getElementById('insp-strength');
+    const inspRatio = document.getElementById('insp-ratio');
+    let inspectorAnimFrame = null;
+    let inspectingShipIndex = 0;
 
     let width, height;
 
@@ -497,6 +596,11 @@
         if (!keys.right) playRcsSound();
         keys.right = true;
       }
+
+      if (e.code === 'KeyC') {
+        credits += 10000;
+        updateCreditsUI();
+      }
     });
 
     window.addEventListener('keyup', (e) => {
@@ -551,11 +655,9 @@
       { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 }
     ];
 
-    // PERSISTENT LOCALSTORAGE CURRENCY & SAVE SYSTEM
     let credits = parseInt(localStorage.getItem('space_explorer_credits')) || 0;
     let equippedShipIndex = parseInt(localStorage.getItem('space_explorer_equipped')) || 0;
     
-    // Default: Only first ship unlocked
     let defaultBoughtArray = new Array(SHIPS.length).fill(false);
     defaultBoughtArray[0] = true;
 
@@ -628,7 +730,6 @@
 
       SHIPS.forEach((ship, index) => {
         const isBought = boughtShips[index];
-        // Enforce linear progression: Can only buy if the previous ship is owned!
         const canBuy = index === 0 || boughtShips[index - 1];
 
         const card = document.createElement('div');
@@ -643,12 +744,18 @@
           statusText = 'LOCKED';
         }
 
+        const renderBar = (val, max = 4.0) => {
+          const fillRatio = Math.min(1.0, val / max);
+          const blocks = Math.round(fillRatio * 8);
+          return '█'.repeat(blocks) + '░'.repeat(8 - blocks);
+        };
+
         card.innerHTML = `
-          <canvas id="${canvasId}" class="ship-preview-canvas" width="80" height="80"></canvas>
+          <canvas id="${canvasId}" class="ship-preview-canvas" width="90" height="90" title="Click model for flight demo"></canvas>
           <div class="ship-name">${ship.name}</div>
-          <div class="ship-stat-bar">SPEED: ${'★'.repeat(Math.min(5, Math.round(ship.speed * 1.5)))}</div>
-          <div class="ship-stat-bar">DURABILITY: ${'★'.repeat(Math.min(5, Math.round(ship.durability * 1.3)))}</div>
-          <div class="ship-stat-bar">STRENGTH: ${'★'.repeat(Math.min(5, Math.round(ship.strength * 1.2)))}</div>
+          <div class="ship-stat-bar">SPD: ${renderBar(ship.speed, 3.5)}</div>
+          <div class="ship-stat-bar">ARM: ${renderBar(ship.durability, 3.5)}</div>
+          <div class="ship-stat-bar">THR: ${renderBar(ship.strength, 4.0)}</div>
           <div class="ship-price">${statusText}</div>
         `;
 
@@ -669,7 +776,7 @@
             renderShop();
           };
         } else if (!canBuy) {
-          actionBtn.textContent = 'REQUIRES PREV SHIP';
+          actionBtn.textContent = 'LOCKED';
           actionBtn.disabled = true;
         } else {
           actionBtn.textContent = 'BUY';
@@ -694,13 +801,169 @@
           if (pCanvas) {
             const pCtx = pCanvas.getContext('2d');
             pCtx.save();
-            pCtx.translate(40, 45);
+            pCtx.translate(45, 50);
             drawShipVector(pCtx, index);
             pCtx.restore();
+
+            pCanvas.onclick = () => openInspector(index);
           }
         }, 10);
       });
     }
+
+    // ANIMATED INSPECTOR FLIGHT PREVIEW
+    let inspectorTime = 0;
+    let inspectorParticles = [];
+    let inspectorStars = [];
+
+    function openInspector(index) {
+      inspectingShipIndex = index;
+      const ship = SHIPS[index];
+
+      inspectorTitle.textContent = ship.name;
+      inspSpeed.textContent = `${ship.speed.toFixed(1)}x`;
+      inspDurability.textContent = `${ship.durability.toFixed(1)}x`;
+      inspStrength.textContent = `${ship.strength.toFixed(1)}x`;
+
+      const ratioVal = (ship.strength / ship.durability).toFixed(2);
+      inspRatio.textContent = ratioVal > 1.1 ? `${ratioVal} (HIGH)` : `${ratioVal} (BALANCED)`;
+
+      inspectorOverlay.style.display = 'flex';
+      inspectorTime = 0;
+      inspectorParticles = [];
+      
+      inspectorStars = [];
+      for (let i = 0; i < 40; i++) {
+        inspectorStars.push({
+          x: Math.random() * inspectorCanvas.width,
+          y: Math.random() * inspectorCanvas.height,
+          speed: Math.random() * 2 + 1,
+          size: Math.random() < 0.8 ? 1 : 2
+        });
+      }
+
+      if (inspectorAnimFrame) cancelAnimationFrame(inspectorAnimFrame);
+      renderInspectorPreview();
+    }
+
+    function renderInspectorPreview() {
+      inspectorTime += 0.04;
+      
+      const w = inspectorCanvas.width;
+      const h = inspectorCanvas.height;
+      const ship = SHIPS[inspectingShipIndex];
+
+      inspectorCtx.fillStyle = '#000000';
+      inspectorCtx.fillRect(0, 0, w, h);
+
+      // Starfield Speed Particle Background
+      inspectorCtx.fillStyle = '#ffffff';
+      inspectorStars.forEach(s => {
+        s.y += s.speed * (0.8 + ship.speed * 0.4);
+        if (s.y > h) {
+          s.y = 0;
+          s.x = Math.random() * w;
+        }
+        inspectorCtx.globalAlpha = Math.min(1, s.speed / 3);
+        inspectorCtx.fillRect(s.x, s.y, s.size, s.size);
+      });
+      inspectorCtx.globalAlpha = 1.0;
+
+      // Smooth Hover Physics
+      const hoverY = h / 2 - 10 + Math.sin(inspectorTime * 2) * 8;
+      const hoverTilt = Math.sin(inspectorTime * 1.4) * 0.15;
+
+      // Exhaust Particle Simulation
+      const variant = inspectingShipIndex % 5;
+      const thrusterCount = (variant === 2 || variant === 4) ? 2 : 1;
+
+      for (let t = 0; t < thrusterCount; t++) {
+        const offsetX = thrusterCount === 2 ? (t === 0 ? -6 : 6) : 0;
+        if (Math.random() < 0.85) {
+          inspectorParticles.push({
+            x: w / 2 + offsetX + (Math.random() - 0.5) * 4,
+            y: hoverY + 22,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: Math.random() * 4 + 3 * ship.strength,
+            life: 1.0,
+            size: Math.random() * 2 + 1
+          });
+        }
+      }
+
+      // Render Thruster Particles
+      inspectorCtx.fillStyle = '#ffffff';
+      inspectorParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.04;
+        inspectorCtx.globalAlpha = Math.max(0, p.life);
+        inspectorCtx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      inspectorCtx.globalAlpha = 1.0;
+      inspectorParticles = inspectorParticles.filter(p => p.life > 0);
+
+      // Draw Main Vector Rocket Model (Scaled Up)
+      inspectorCtx.save();
+      inspectorCtx.translate(w / 2, hoverY);
+      inspectorCtx.rotate(hoverTilt);
+      inspectorCtx.scale(2.2, 2.2);
+      drawShipVector(inspectorCtx, inspectingShipIndex);
+
+      // Dynamic Flame Thruster Effect
+      const flameLength = (Math.random() * 10 + 10) * (0.8 + ship.strength * 0.2);
+      inspectorCtx.strokeStyle = '#ffffff';
+      inspectorCtx.lineWidth = 1.5;
+
+      if (thrusterCount === 2) {
+        inspectorCtx.beginPath();
+        inspectorCtx.moveTo(-7, 12);
+        inspectorCtx.lineTo(-5, 12 + flameLength);
+        inspectorCtx.lineTo(-3, 12);
+        inspectorCtx.moveTo(3, 12);
+        inspectorCtx.lineTo(5, 12 + flameLength);
+        inspectorCtx.lineTo(7, 12);
+        inspectorCtx.stroke();
+      } else {
+        inspectorCtx.beginPath();
+        inspectorCtx.moveTo(-4, 10);
+        inspectorCtx.lineTo(0, 10 + flameLength);
+        inspectorCtx.lineTo(4, 10);
+        inspectorCtx.stroke();
+      }
+
+      // Periodic RCS Thruster Demo Bursts
+      if (Math.sin(inspectorTime * 3) > 0.7) {
+        inspectorCtx.beginPath();
+        inspectorCtx.moveTo(-10, -2);
+        inspectorCtx.lineTo(-16, -2);
+        inspectorCtx.moveTo(10, -2);
+        inspectorCtx.lineTo(16, -2);
+        inspectorCtx.stroke();
+      }
+
+      inspectorCtx.restore();
+
+      // Digital Frame Borders
+      inspectorCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      inspectorCtx.lineWidth = 1;
+      inspectorCtx.strokeRect(8, 8, w - 16, h - 16);
+
+      // Corner Crosshairs
+      inspectorCtx.beginPath();
+      inspectorCtx.moveTo(14, 18); inspectorCtx.lineTo(18, 18); inspectorCtx.lineTo(18, 14);
+      inspectorCtx.moveTo(w - 14, 18); inspectorCtx.lineTo(w - 18, 18); inspectorCtx.lineTo(w - 18, 14);
+      inspectorCtx.stroke();
+
+      if (inspectorOverlay.style.display === 'flex') {
+        inspectorAnimFrame = requestAnimationFrame(renderInspectorPreview);
+      }
+    }
+
+    document.getElementById('inspector-close-btn').onclick = () => {
+      inspectorOverlay.style.display = 'none';
+      if (inspectorAnimFrame) cancelAnimationFrame(inspectorAnimFrame);
+    };
 
     function generateStars() {
       stars = [];
@@ -968,7 +1231,7 @@
 
       if (currentWorld === 'SPACE') {
         turnaroundBtn.style.display = 'block';
-        turnaroundBtn.textContent = travelDirection === 'TO_EARTH' ? '↩ RETURN TO MOON' : '↩ RETURN TO EARTH';
+        turnaroundBtn.textContent = travelDirection === 'TO_EARTH' ? 'RETURN TO MOON' : 'RETURN TO EARTH';
 
         const ship = SHIPS[equippedShipIndex];
         const thrustBonus = (keys.thrust && lander.fuel > 0) ? (3.0 * ship.speed) : (1.0 * ship.speed);
