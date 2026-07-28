@@ -1,9 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Space Explorer</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -13,7 +17,6 @@
       padding: 0;
     }
 
-    /* CUSTOM BLACK SCROLLBAR */
     ::-webkit-scrollbar {
       width: 8px;
     }
@@ -23,7 +26,6 @@
     }
     ::-webkit-scrollbar-thumb {
       background: #333333;
-      border-radius: 0px;
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #555555;
@@ -128,7 +130,6 @@
       color: #000000;
     }
 
-    /* MENU / OVERLAY STYLES */
     .screen-overlay {
       position: absolute;
       top: 0;
@@ -156,13 +157,27 @@
       color: #aaaaaa;
       letter-spacing: 2px;
       margin-bottom: 30px;
+      text-align: center;
     }
 
     .menu-btn-group {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      width: 260px;
+      gap: 12px;
+      width: 280px;
+    }
+
+    .input-field {
+      background: #111111;
+      border: 1px solid #ffffff;
+      color: #ffffff;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 12px;
+      text-align: center;
+      letter-spacing: 2px;
+      outline: none;
+      width: 100%;
     }
 
     .btn-action {
@@ -191,7 +206,6 @@
       cursor: not-allowed;
     }
 
-    /* SHOP GRID */
     #shop-screen {
       display: none;
     }
@@ -276,7 +290,6 @@
       letter-spacing: 1px;
     }
 
-    /* SHIP INSPECTOR MODAL */
     #ship-inspector-overlay {
       display: none;
       z-index: 20;
@@ -356,12 +369,41 @@
       border-color: #ffffff;
       color: #ffffff;
     }
+
+    #countdown-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 15;
+      font-size: 90px;
+      font-weight: bold;
+      letter-spacing: 10px;
+      text-shadow: 0 0 20px #ffffff;
+    }
+
+    /* Modal / Flow Overlays */
+    .modal-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 12;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
 
   <div id="game-container">
     <canvas id="gameCanvas"></canvas>
+
+    <div id="countdown-overlay">3</div>
 
     <div class="hud">
       <div class="hud-column">
@@ -388,14 +430,62 @@
     <div id="main-menu" class="screen-overlay">
       <div class="menu-title">SPACE EXPLORER</div>
       <div class="menu-subtitle">EARTH & LUNAR TRANSIT PROGRAM</div>
+      
       <div class="menu-btn-group">
-        <button class="btn-action" id="menu-start-btn">START GAME</button>
+        <button class="btn-action" id="menu-single-btn">SINGLE PLAYER</button>
+        <button class="btn-action" id="menu-multi-btn">MULTIPLAYER HOST / JOIN</button>
         <button class="btn-action" id="menu-shop-btn">ROCKET SHOP</button>
       </div>
     </div>
 
+    <div id="multiplayer-select-modal" class="modal-overlay">
+      <div class="menu-title">MULTIPLAYER</div>
+      <div class="menu-subtitle">CHOOSE YOUR ROLE</div>
+      
+      <div class="menu-btn-group">
+        <button class="btn-action" id="select-host-btn">HOST GAME</button>
+        <button class="btn-action" id="select-join-btn">JOIN GAME</button>
+        <button class="btn-action" id="multi-back-btn">BACK</button>
+      </div>
+    </div>
+
+    <div id="host-setup-modal" class="modal-overlay">
+      <div class="menu-title">HOST GAME</div>
+      <div class="menu-subtitle">ENTER PILOT DETAILS</div>
+      
+      <div class="menu-btn-group">
+        <input type="text" id="host-name-input" class="input-field" placeholder="PILOT NAME" maxlength="12">
+        <button class="btn-action" id="confirm-host-btn">CREATE ROOM</button>
+        <button class="btn-action" id="host-setup-back-btn">BACK</button>
+      </div>
+    </div>
+
+    <div id="join-setup-modal" class="modal-overlay">
+      <div class="menu-title">JOIN GAME</div>
+      <div class="menu-subtitle">ENTER PILOT & ROOM DETAILS</div>
+      
+      <div class="menu-btn-group">
+        <input type="text" id="join-name-input" class="input-field" placeholder="PILOT NAME" maxlength="12">
+        <input type="text" id="join-code-input" class="input-field" placeholder="ROOM CODE" maxlength="4">
+        <button class="btn-action" id="confirm-join-btn">JOIN ROOM</button>
+        <button class="btn-action" id="join-setup-back-btn">BACK</button>
+      </div>
+    </div>
+
+    <div id="lobby-screen" class="screen-overlay" style="display: none;">
+      <div class="menu-title" id="lobby-title">LOBBY: ----</div>
+      <div class="menu-subtitle" id="lobby-status">WAITING FOR PLAYERS...</div>
+      
+      <div id="lobby-players-list" style="margin-bottom: 25px; font-size: 13px; letter-spacing: 2px;"></div>
+
+      <div class="menu-btn-group">
+        <button class="btn-action" id="host-start-race-btn" style="display: none;">PRESS SPACE TO START RACE</button>
+        <button class="btn-action" id="lobby-leave-btn">LEAVE LOBBY</button>
+      </div>
+    </div>
+
     <div id="shop-screen" class="screen-overlay">
-      <div class="menu-title">Rockets Shop</div>
+      <div class="menu-title">ROCKET SHOP</div>
       <div class="credits-display">AVAILABLE CREDITS: <span id="shop-credits">$0</span></div>
       
       <div class="shop-grid" id="shop-grid"></div>
@@ -452,10 +542,24 @@
   </div>
 
   <script>
+    // ==========================================
+    // SUPABASE CONFIGURATION
+    // ==========================================
+    const SUPABASE_URL = "https://irdytcbugvkywcefdqhd.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_dDYqsTZ1Iz_kp8zVofOv5A_FEKZUbUH";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let roomChannel = null;
+    let roomCode = "";
+    let isHost = false;
+    let myPlayerId = 'p_' + Math.random().toString(36).substring(2, 9);
+    let playerName = localStorage.getItem('space_explorer_name') || "PILOT " + Math.floor(Math.random() * 900 + 100);
+    let opponents = {};
+    let isRaceStarting = false;
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // UI Elements
     const locationEl = document.getElementById('location');
     const fuelEl = document.getElementById('fuel');
     const creditsEl = document.getElementById('credits');
@@ -475,7 +579,6 @@
     const progressBarInner = document.getElementById('progress-bar-inner');
     const turnaroundBtn = document.getElementById('turnaround-btn');
 
-    // Inspector UI Elements
     const inspectorOverlay = document.getElementById('ship-inspector-overlay');
     const inspectorCanvas = document.getElementById('inspector-canvas');
     const inspectorCtx = inspectorCanvas.getContext('2d');
@@ -586,6 +689,13 @@
 
     window.addEventListener('keydown', (e) => {
       initAudio();
+      if (e.code === 'Space' && isHost && document.getElementById('lobby-screen').style.display === 'flex') {
+        startMultiplayerCountdown();
+        return;
+      }
+
+      if (isRaceStarting) return;
+
       if (['ArrowUp', 'KeyW'].includes(e.code)) keys.thrust = true;
       if (['ArrowLeft', 'KeyA'].includes(e.code)) {
         if (!keys.left) playRcsSound();
@@ -616,6 +726,7 @@
       const start = (e) => { 
         e.preventDefault(); 
         initAudio();
+        if (isRaceStarting) return;
         if ((key === 'left' || key === 'right') && !keys[key]) playRcsSound();
         keys[key] = true; 
         btn.classList.add('active'); 
@@ -635,7 +746,6 @@
     setupTouch('btn-thrust', 'thrust');
     setupTouch('btn-right', 'right');
 
-    // 15 PROGRESSIVE ROCKET SHIPS DATA
     const SHIPS = [
       { name: "MK-1 SCOUT", price: 0, speed: 1.0, durability: 1.0, strength: 1.0 },
       { name: "MK-2 APOLLO", price: 400, speed: 1.1, durability: 1.2, strength: 1.1 },
@@ -694,7 +804,6 @@
       shopCreditsEl.textContent = `$${Math.floor(credits).toLocaleString()}`;
     }
 
-    // DRAW UNIQUE VECTOR ROCKET DESIGNS
     function drawShipVector(c, id) {
       c.strokeStyle = '#ffffff';
       c.fillStyle = '#ffffff';
@@ -703,20 +812,20 @@
       c.beginPath();
       const variant = id % 5;
       
-      if (variant === 0) { // Standard Lander
+      if (variant === 0) {
         c.moveTo(-6, 2); c.lineTo(-6, -8); c.lineTo(0, -14 - id); c.lineTo(6, -8); c.lineTo(6, 2); c.closePath(); c.stroke();
         c.beginPath(); c.moveTo(-6, 8); c.lineTo(-12 - id*0.5, 15); c.moveTo(6, 8); c.lineTo(12 + id*0.5, 15); c.stroke();
-      } else if (variant === 1) { // Apollo Pod
+      } else if (variant === 1) {
         c.moveTo(-8, 8); c.lineTo(-8, -12); c.lineTo(0, -18 - id); c.lineTo(8, -12); c.lineTo(8, 8); c.closePath(); c.stroke();
         c.beginPath(); c.arc(0, -4, 3, 0, Math.PI*2); c.stroke();
         c.beginPath(); c.moveTo(-8, 8); c.lineTo(-14 - id*0.3, 16); c.moveTo(8, 8); c.lineTo(14 + id*0.3, 16); c.stroke();
-      } else if (variant === 2) { // Heavy Cruiser
+      } else if (variant === 2) {
         c.moveTo(-12, 10); c.lineTo(-12, -10); c.lineTo(-6, -16 - id); c.lineTo(6, -16 - id); c.lineTo(12, -10); c.lineTo(12, 10); c.closePath(); c.stroke();
         c.beginPath(); c.moveTo(-12, 10); c.lineTo(-16 - id*0.4, 18); c.moveTo(12, 10); c.lineTo(16 + id*0.4, 18); c.stroke();
-      } else if (variant === 3) { // Arrow Dart
+      } else if (variant === 3) {
         c.moveTo(-7, 8); c.lineTo(0, -18 - id*1.2); c.lineTo(7, 8); c.lineTo(0, 4); c.closePath(); c.stroke();
         c.beginPath(); c.moveTo(-4, 6); c.lineTo(-12 - id*0.5, 12); c.moveTo(4, 6); c.lineTo(12 + id*0.5, 12); c.stroke();
-      } else { // Winged Sovereign
+      } else {
         c.moveTo(-8, 12); c.lineTo(-4, -22 - id); c.lineTo(0, -26 - id); c.lineTo(4, -22 - id); c.lineTo(8, 12); c.closePath(); c.stroke();
         c.beginPath(); c.moveTo(-4, 2); c.lineTo(-18 - id*0.6, 14); c.lineTo(-18 - id*0.6, 4); c.lineTo(-4, -6); c.stroke();
         c.beginPath(); c.moveTo(4, 2); c.lineTo(18 + id*0.6, 14); c.lineTo(18 + id*0.6, 4); c.lineTo(4, -6); c.stroke();
@@ -750,7 +859,7 @@
         };
 
         card.innerHTML = `
-          <canvas id="${canvasId}" class="ship-preview-canvas" width="90" height="90" title="Click model for flight demo"></canvas>
+          <canvas id="${canvasId}" class="ship-preview-canvas" width="90" height="90"></canvas>
           <div class="ship-name">${ship.name}</div>
           <div class="ship-stat-bar">SPD: ${renderBar(ship.speed, 3.5)}</div>
           <div class="ship-stat-bar">ARM: ${renderBar(ship.durability, 3.5)}</div>
@@ -810,7 +919,6 @@
       });
     }
 
-    // ANIMATED INSPECTOR FLIGHT PREVIEW
     let inspectorTime = 0;
     let inspectorParticles = [];
     let inspectorStars = [];
@@ -847,7 +955,6 @@
 
     function renderInspectorPreview() {
       inspectorTime += 0.04;
-      
       const w = inspectorCanvas.width;
       const h = inspectorCanvas.height;
       const ship = SHIPS[inspectingShipIndex];
@@ -855,7 +962,6 @@
       inspectorCtx.fillStyle = '#000000';
       inspectorCtx.fillRect(0, 0, w, h);
 
-      // Starfield Speed Particle Background
       inspectorCtx.fillStyle = '#ffffff';
       inspectorStars.forEach(s => {
         s.y += s.speed * (0.8 + ship.speed * 0.4);
@@ -868,11 +974,9 @@
       });
       inspectorCtx.globalAlpha = 1.0;
 
-      // Smooth Hover Physics
       const hoverY = h / 2 - 10 + Math.sin(inspectorTime * 2) * 8;
       const hoverTilt = Math.sin(inspectorTime * 1.4) * 0.15;
 
-      // Exhaust Particle Simulation
       const variant = inspectingShipIndex % 5;
       const thrusterCount = (variant === 2 || variant === 4) ? 2 : 1;
 
@@ -890,7 +994,6 @@
         }
       }
 
-      // Render Thruster Particles
       inspectorCtx.fillStyle = '#ffffff';
       inspectorParticles.forEach(p => {
         p.x += p.vx;
@@ -902,14 +1005,12 @@
       inspectorCtx.globalAlpha = 1.0;
       inspectorParticles = inspectorParticles.filter(p => p.life > 0);
 
-      // Draw Main Vector Rocket Model (Scaled Up)
       inspectorCtx.save();
       inspectorCtx.translate(w / 2, hoverY);
       inspectorCtx.rotate(hoverTilt);
       inspectorCtx.scale(2.2, 2.2);
       drawShipVector(inspectorCtx, inspectingShipIndex);
 
-      // Dynamic Flame Thruster Effect
       const flameLength = (Math.random() * 10 + 10) * (0.8 + ship.strength * 0.2);
       inspectorCtx.strokeStyle = '#ffffff';
       inspectorCtx.lineWidth = 1.5;
@@ -931,28 +1032,11 @@
         inspectorCtx.stroke();
       }
 
-      // Periodic RCS Thruster Demo Bursts
-      if (Math.sin(inspectorTime * 3) > 0.7) {
-        inspectorCtx.beginPath();
-        inspectorCtx.moveTo(-10, -2);
-        inspectorCtx.lineTo(-16, -2);
-        inspectorCtx.moveTo(10, -2);
-        inspectorCtx.lineTo(16, -2);
-        inspectorCtx.stroke();
-      }
-
       inspectorCtx.restore();
 
-      // Digital Frame Borders
       inspectorCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
       inspectorCtx.lineWidth = 1;
       inspectorCtx.strokeRect(8, 8, w - 16, h - 16);
-
-      // Corner Crosshairs
-      inspectorCtx.beginPath();
-      inspectorCtx.moveTo(14, 18); inspectorCtx.lineTo(18, 18); inspectorCtx.lineTo(18, 14);
-      inspectorCtx.moveTo(w - 14, 18); inspectorCtx.lineTo(w - 18, 18); inspectorCtx.lineTo(w - 18, 14);
-      inspectorCtx.stroke();
 
       if (inspectorOverlay.style.display === 'flex') {
         inspectorAnimFrame = requestAnimationFrame(renderInspectorPreview);
@@ -1181,7 +1265,6 @@
             const normalizedAngle = Math.abs((lander.angle % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
 
             const pad = landingPads.find(p => lander.x >= p.x1 && lander.x <= p.x2);
-
             const maxSafeSpeed = 2.0 * ship.durability;
 
             if (pad && speed <= maxSafeSpeed && normalizedAngle <= (12 * Math.PI / 180)) {
@@ -1264,6 +1347,148 @@
       }
     }
 
+    // ==========================================
+    // MULTIPLAYER BROADCAST LOGIC
+    // ==========================================
+    function connectToSupabaseRoom(code) {
+      roomCode = code.toUpperCase();
+      roomChannel = supabaseClient.channel(`room_${roomCode}`);
+
+      roomChannel
+        .on('broadcast', { event: 'player_pos' }, ({ payload }) => {
+          if (payload.id !== myPlayerId) {
+            opponents[payload.id] = payload;
+          }
+        })
+        .on('broadcast', { event: 'start_countdown' }, () => {
+          runCountdown();
+        })
+        .on('presence', { event: 'sync' }, () => {
+          const state = roomChannel.presenceState();
+          updateLobbyPlayersList(state);
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await roomChannel.track({
+              id: myPlayerId,
+              name: playerName,
+              shipIndex: equippedShipIndex,
+              isHost: isHost
+            });
+          }
+        });
+
+      document.getElementById('main-menu').style.display = 'none';
+      document.getElementById('host-setup-modal').style.display = 'none';
+      document.getElementById('join-setup-modal').style.display = 'none';
+      document.getElementById('lobby-screen').style.display = 'flex';
+      document.getElementById('lobby-title').textContent = `LOBBY: ${roomCode}`;
+      document.getElementById('host-start-race-btn').style.display = isHost ? 'block' : 'none';
+    }
+
+    function updateLobbyPlayersList(presenceState) {
+      const listEl = document.getElementById('lobby-players-list');
+      listEl.innerHTML = '';
+      let total = 0;
+
+      for (let id in presenceState) {
+        presenceState[id].forEach(p => {
+          total++;
+          const item = document.createElement('div');
+          item.style.margin = '5px 0';
+          item.textContent = `🚀 ${p.name} (${SHIPS[p.shipIndex].name}) ${p.isHost ? '[HOST]' : ''}`;
+          listEl.appendChild(item);
+        });
+      }
+
+      document.getElementById('lobby-status').textContent = `${total} PILOT(S) IN LOBBY`;
+    }
+
+    function broadcastMyPosition() {
+      if (roomChannel && gameState === 'PLAYING') {
+        roomChannel.send({
+          type: 'broadcast',
+          event: 'player_pos',
+          payload: {
+            id: myPlayerId,
+            name: playerName,
+            x: lander.x,
+            y: lander.y,
+            angle: lander.angle,
+            shipIndex: equippedShipIndex,
+            isThrusting: keys.thrust
+          }
+        });
+      }
+    }
+
+    function startMultiplayerCountdown() {
+      if (roomChannel && isHost) {
+        roomChannel.send({
+          type: 'broadcast',
+          event: 'start_countdown',
+          payload: {}
+        });
+        runCountdown(); // Host triggers countdown locally as well
+      }
+    }
+
+    function runCountdown() {
+      document.getElementById('lobby-screen').style.display = 'none';
+      startGame();
+      isRaceStarting = true;
+
+      const countdownOverlay = document.getElementById('countdown-overlay');
+      countdownOverlay.style.display = 'flex';
+
+      let count = 3;
+      countdownOverlay.textContent = count;
+      playChimeSound();
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownOverlay.textContent = count;
+          playChimeSound();
+        } else if (count === 0) {
+          countdownOverlay.textContent = "LAUNCH!";
+          playChimeSound();
+        } else {
+          clearInterval(timer);
+          countdownOverlay.style.display = 'none';
+          isRaceStarting = false;
+        }
+      }, 1000);
+    }
+
+    function drawOpponents() {
+      for (let id in opponents) {
+        const opp = opponents[id];
+
+        ctx.save();
+        ctx.translate(opp.x, opp.y);
+        ctx.rotate(opp.angle);
+
+        drawShipVector(ctx, opp.shipIndex);
+
+        if (opp.isThrusting) {
+          ctx.strokeStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.moveTo(-4, 10);
+          ctx.lineTo(0, 10 + Math.random() * 12 + 6);
+          ctx.lineTo(4, 10);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText(opp.name, opp.x, opp.y - 25);
+      }
+    }
+
     function update() {
       if (gameState !== 'PLAYING') {
         updateParticles();
@@ -1271,44 +1496,46 @@
         return;
       }
 
-      const ship = SHIPS[equippedShipIndex];
+      if (!isRaceStarting) {
+        const ship = SHIPS[equippedShipIndex];
 
-      if (keys.left) {
-        lander.angle -= 0.10;
-        if (currentWorld === 'SPACE') lander.vx -= 0.22 * ship.speed;
-      }
-      if (keys.right) {
-        lander.angle += 0.10;
-        if (currentWorld === 'SPACE') lander.vx += 0.22 * ship.speed;
-      }
-
-      const isThrusting = keys.thrust && lander.fuel > 0;
-      setThrustSound(isThrusting);
-
-      if (isThrusting) {
-        const thrustPower = 0.12 * ship.speed;
-        lander.vx += Math.sin(lander.angle) * thrustPower;
-        
-        if (currentWorld === 'SPACE') {
-          spaceOffsetY += Math.cos(lander.angle) * thrustPower * 14;
-        } else {
-          lander.vy -= Math.cos(lander.angle) * thrustPower;
+        if (keys.left) {
+          lander.angle -= 0.10;
+          if (currentWorld === 'SPACE') lander.vx -= 0.22 * ship.speed;
         }
-        
-        lander.fuel = Math.max(0, lander.fuel - (0.08 / ship.strength));
+        if (keys.right) {
+          lander.angle += 0.10;
+          if (currentWorld === 'SPACE') lander.vx += 0.22 * ship.speed;
+        }
+
+        const isThrusting = keys.thrust && lander.fuel > 0;
+        setThrustSound(isThrusting);
+
+        if (isThrusting) {
+          const thrustPower = 0.12 * ship.speed;
+          lander.vx += Math.sin(lander.angle) * thrustPower;
+          
+          if (currentWorld === 'SPACE') {
+            spaceOffsetY += Math.cos(lander.angle) * thrustPower * 14;
+          } else {
+            lander.vy -= Math.cos(lander.angle) * thrustPower;
+          }
+          
+          lander.fuel = Math.max(0, lander.fuel - (0.08 / ship.strength));
+        }
+
+        if (currentWorld === 'SPACE') {
+          lander.vx *= 0.98;
+        } else {
+          lander.vy += GRAVITY_SURFACE;
+          lander.y += lander.vy;
+        }
+
+        lander.x += lander.vx;
+
+        if (lander.x < 0) lander.x = width;
+        if (lander.x > width) lander.x = 0;
       }
-
-      if (currentWorld === 'SPACE') {
-        lander.vx *= 0.98;
-      } else {
-        lander.vy += GRAVITY_SURFACE;
-        lander.y += lander.vy;
-      }
-
-      lander.x += lander.vx;
-
-      if (lander.x < 0) lander.x = width;
-      if (lander.x > width) lander.x = 0;
 
       if (currentWorld === 'EARTH') {
         clouds.forEach(c => {
@@ -1328,6 +1555,7 @@
       updateMeteors();
       updateWorldTransitions();
       checkTerrainCollision();
+      broadcastMyPosition();
     }
 
     function draw() {
@@ -1417,8 +1645,8 @@
       }
 
       drawParticles();
+      drawOpponents();
 
-      // DRAW LANDER ROCKET
       if (gameState === 'PLAYING' || gameState === 'LANDED') {
         ctx.save();
         ctx.translate(lander.x, lander.y);
@@ -1426,7 +1654,7 @@
 
         drawShipVector(ctx, equippedShipIndex);
 
-        if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING') {
+        if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING' && !isRaceStarting) {
           ctx.strokeStyle = '#ffffff';
           ctx.beginPath();
           ctx.moveTo(-4, 10);
@@ -1436,6 +1664,11 @@
         }
 
         ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText(playerName, lander.x, lander.y - 25);
       }
 
       ctx.restore();
@@ -1447,12 +1680,90 @@
       overlay.style.display = 'flex';
     }
 
-    // MENU BUTTON EVENTS
-    document.getElementById('menu-start-btn').addEventListener('click', () => {
+    // ==========================================
+    // NAVIGATION & MENU CONTROLS
+    // ==========================================
+
+    // Single Player
+    document.getElementById('menu-single-btn').addEventListener('click', () => {
       mainMenu.style.display = 'none';
       startGame();
     });
 
+    // Multiplayer Choice Flow
+    document.getElementById('menu-multi-btn').addEventListener('click', () => {
+      document.getElementById('multiplayer-select-modal').style.display = 'flex';
+    });
+
+    document.getElementById('multi-back-btn').addEventListener('click', () => {
+      document.getElementById('multiplayer-select-modal').style.display = 'none';
+    });
+
+    // Host Flow
+    document.getElementById('select-host-btn').addEventListener('click', () => {
+      document.getElementById('multiplayer-select-modal').style.display = 'none';
+      document.getElementById('host-setup-modal').style.display = 'flex';
+      document.getElementById('host-name-input').value = playerName;
+    });
+
+    document.getElementById('host-setup-back-btn').addEventListener('click', () => {
+      document.getElementById('host-setup-modal').style.display = 'none';
+      document.getElementById('multiplayer-select-modal').style.display = 'flex';
+    });
+
+    document.getElementById('confirm-host-btn').addEventListener('click', () => {
+      const nameInput = document.getElementById('host-name-input').value.trim().toUpperCase();
+      if (nameInput) {
+        playerName = nameInput;
+        localStorage.setItem('space_explorer_name', playerName);
+      }
+      isHost = true;
+      const randomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+      connectToSupabaseRoom(randomCode);
+    });
+
+    // Join Flow
+    document.getElementById('select-join-btn').addEventListener('click', () => {
+      document.getElementById('multiplayer-select-modal').style.display = 'none';
+      document.getElementById('join-setup-modal').style.display = 'flex';
+      document.getElementById('join-name-input').value = playerName;
+    });
+
+    document.getElementById('join-setup-back-btn').addEventListener('click', () => {
+      document.getElementById('join-setup-modal').style.display = 'none';
+      document.getElementById('multiplayer-select-modal').style.display = 'flex';
+    });
+
+    document.getElementById('confirm-join-btn').addEventListener('click', () => {
+      const nameInput = document.getElementById('join-name-input').value.trim().toUpperCase();
+      const codeInput = document.getElementById('join-code-input').value.trim().toUpperCase();
+
+      if (!codeInput || codeInput.length !== 4) {
+        alert("Please enter a valid 4-character room code!");
+        return;
+      }
+
+      if (nameInput) {
+        playerName = nameInput;
+        localStorage.setItem('space_explorer_name', playerName);
+      }
+
+      isHost = false;
+      connectToSupabaseRoom(codeInput);
+    });
+
+    // Lobby Actions
+    document.getElementById('host-start-race-btn').addEventListener('click', () => {
+      startMultiplayerCountdown();
+    });
+
+    document.getElementById('lobby-leave-btn').addEventListener('click', () => {
+      if (roomChannel) roomChannel.unsubscribe();
+      document.getElementById('lobby-screen').style.display = 'none';
+      mainMenu.style.display = 'flex';
+    });
+
+    // Shop Actions
     document.getElementById('menu-shop-btn').addEventListener('click', () => {
       mainMenu.style.display = 'none';
       renderShop();
