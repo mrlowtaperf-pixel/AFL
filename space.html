@@ -761,7 +761,7 @@
       { name: "MK-13 HYPERION", price: 68000, speed: 2.4, durability: 3.1, strength: 3.2 },
       { name: "MK-14 ECLIPSE", price: 90000, speed: 2.8, durability: 3.0, strength: 3.5 },
       { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 },
-      { name: "TUNG TUNG ROCKET", price: 150000, speed: 4.2, durability: 4.2, strength: 4.2 } // ALL MAX STATS
+      { name: "TUNG TUNG ROCKET", price: 150000, speed: 4.2, durability: 4.2, strength: 4.2 }
     ];
 
     let credits = parseInt(localStorage.getItem('space_explorer_credits')) || 0;
@@ -811,9 +811,7 @@
       c.fillStyle = '#ffffff';
       c.lineWidth = 1.2;
 
-      // FULL ACCURATE TUNG TUNG SAHUR VECTOR CHARACTER DESIGN
       if (SHIPS[id] && SHIPS[id].name === "TUNG TUNG ROCKET") {
-        // 1. TUNG TUNG MAIN WOODEN SLIT-DRUM / LOG BODY
         c.beginPath();
         c.moveTo(-6, -26);
         c.lineTo(6, -26);
@@ -822,43 +820,34 @@
         c.closePath();
         c.stroke();
 
-        // Top Rounded Knob / Crown of the wooden log
         c.beginPath();
         c.arc(0, -26, 6, Math.PI, 0);
         c.stroke();
 
-        // 2. CENTRAL SLIT (Traditional Kentongan Slit Drum feature)
         c.beginPath();
         c.moveTo(0, -12);
         c.lineTo(0, 2);
         c.stroke();
 
-        // 3. ANGRY / GLOWING EYES & MOUTH
         c.beginPath();
-        c.moveTo(-4, -20); c.lineTo(-1, -18); // Left Eyebrow
-        c.moveTo(4, -20);  c.lineTo(1, -18);  // Right Eyebrow
-        c.moveTo(-3, -17); c.lineTo(-1, -17); // Left Eye
-        c.moveTo(3, -17);  c.lineTo(1, -17);  // Right Eye
-        c.moveTo(-2, -14); c.lineTo(2, -14);  // Grimace Mouth
+        c.moveTo(-4, -20); c.lineTo(-1, -18);
+        c.moveTo(4, -20);  c.lineTo(1, -18);
+        c.moveTo(-3, -17); c.lineTo(-1, -17);
+        c.moveTo(3, -17);  c.lineTo(1, -17);
+        c.moveTo(-2, -14); c.lineTo(2, -14);
         c.stroke();
 
-        // 4. ARMS & HELD BAT/STICK (Tung Tung's iconic weapon)
         c.beginPath();
-        // Left Arm
         c.moveTo(-7, -8); c.lineTo(-12, -2); c.lineTo(-10, 4);
-        // Right Arm (Holding Bat)
         c.moveTo(7, -8); c.lineTo(13, -4);
-        // Baseball Bat / Drum Stick
         c.moveTo(13, -16); c.lineTo(11, 8); c.lineTo(15, 8); c.lineTo(17, -16); c.closePath();
         c.stroke();
 
-        // 5. STICK-FIGURE LEGS & FEET
         c.beginPath();
-        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16); // Left Leg & Foot
-        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);  // Right Leg & Foot
+        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16);
+        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);
         c.stroke();
 
-        // 6. ROCKET THRUSTER BELLS ATTACHED AT BOTTOM
         c.beginPath();
         c.moveTo(-8, 16); c.lineTo(-11, 24); c.lineTo(-3, 24); c.lineTo(-4, 16);
         c.moveTo(4, 16);  c.lineTo(3, 24);   c.lineTo(11, 24); c.lineTo(8, 16);
@@ -866,7 +855,6 @@
         return;
       }
 
-      // Default procedural vector designs for other rockets
       c.beginPath();
       const variant = id % 5;
       
@@ -1053,7 +1041,6 @@
         }
       }
 
-      // Tung Tung shoutouts in inspector
       if (isTungTung && Math.random() < 0.05) {
         spawnShoutout(w / 2 + (Math.random() - 0.5) * 40, hoverY - 20);
       }
@@ -1420,12 +1407,15 @@
         turnaroundBtn.textContent = travelDirection === 'TO_EARTH' ? 'RETURN TO MOON' : 'RETURN TO EARTH';
 
         const ship = SHIPS[equippedShipIndex];
-        const thrustBonus = (keys.thrust && lander.fuel > 0) ? (3.0 * ship.speed) : (1.0 * ship.speed);
-        
-        transitTime += (1 / 60) * thrustBonus;
 
-        credits += 0.2 * ship.strength;
-        updateCreditsUI();
+        // FIXED: Distance and credits ONLY advance when actively thrusting with fuel!
+        if (keys.thrust && lander.fuel > 0) {
+          const thrustBonus = 3.0 * ship.speed;
+          transitTime += (1 / 60) * thrustBonus;
+
+          credits += 0.2 * ship.strength;
+          updateCreditsUI();
+        }
 
         const progressRatio = Math.min(1.0, transitTime / TOTAL_TRANSIT_REQUIRED);
         const distanceRemainingKm = Math.max(0, Math.floor(TOTAL_DISTANCE_KM * (1 - progressRatio)));
@@ -1615,13 +1605,15 @@
       if (!isRaceStarting) {
         const ship = SHIPS[equippedShipIndex];
 
+        // RCS steering & smooth direct lateral force
+        const rcsPower = 0.08 * ship.speed;
         if (keys.left) {
-          lander.angle -= 0.10;
-          if (currentWorld === 'SPACE') lander.vx -= 0.22 * ship.speed;
+          lander.angle -= 0.05;
+          lander.vx -= rcsPower;
         }
         if (keys.right) {
-          lander.angle += 0.10;
-          if (currentWorld === 'SPACE') lander.vx += 0.22 * ship.speed;
+          lander.angle += 0.05;
+          lander.vx += rcsPower;
         }
 
         const isThrusting = keys.thrust && lander.fuel > 0;
@@ -1639,16 +1631,17 @@
           
           lander.fuel = Math.max(0, lander.fuel - (0.08 / ship.strength));
 
-          // Trigger Tung Tung word animation popup when flying!
           if (ship.name === "TUNG TUNG ROCKET" && Date.now() - lastShoutoutTime > 400 && Math.random() < 0.25) {
             lastShoutoutTime = Date.now();
             spawnShoutout(lander.x, lander.y - 15);
           }
         }
 
+        // Velocity damping & inertia preservation
         if (currentWorld === 'SPACE') {
-          lander.vx *= 0.98;
+          lander.vx *= 0.995;
         } else {
+          lander.vx *= 0.99;
           lander.vy += GRAVITY_SURFACE;
           lander.y += lander.vy;
         }
