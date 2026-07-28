@@ -384,7 +384,6 @@
       text-shadow: 0 0 20px #ffffff;
     }
 
-    /* Modal / Flow Overlays */
     .modal-overlay {
       display: none;
       position: absolute;
@@ -759,6 +758,7 @@
       { name: "MK-10 NEPTUNE", price: 28000, speed: 1.8, durability: 2.6, strength: 2.5 },
       { name: "MK-11 CENTURION", price: 38000, speed: 2.3, durability: 2.2, strength: 2.7 },
       { name: "MK-12 SUPERNOVA", price: 50000, speed: 2.6, durability: 2.5, strength: 2.9 },
+      { name: "TUNG TUNG ROCKET", price: 67000, speed: 2.7, durability: 2.8, strength: 3.1 },
       { name: "MK-13 HYPERION", price: 68000, speed: 2.4, durability: 3.1, strength: 3.2 },
       { name: "MK-14 ECLIPSE", price: 90000, speed: 2.8, durability: 3.0, strength: 3.5 },
       { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 }
@@ -809,6 +809,62 @@
       c.fillStyle = '#ffffff';
       c.lineWidth = 1.2;
 
+      // FULL ACCURATE TUNG TUNG SAHUR VECTOR CHARACTER DESIGN
+      if (SHIPS[id] && SHIPS[id].name === "TUNG TUNG ROCKET") {
+        // 1. TUNG TUNG MAIN WOODEN SLIT-DRUM / LOG BODY
+        c.beginPath();
+        c.moveTo(-6, -26);
+        c.lineTo(6, -26);
+        c.lineTo(7, 8);
+        c.lineTo(-7, 8);
+        c.closePath();
+        c.stroke();
+
+        // Top Rounded Knob / Crown of the wooden log
+        c.beginPath();
+        c.arc(0, -26, 6, Math.PI, 0);
+        c.stroke();
+
+        // 2. CENTRAL SLIT (Traditional Kentongan Slit Drum feature)
+        c.beginPath();
+        c.moveTo(0, -12);
+        c.lineTo(0, 2);
+        c.stroke();
+
+        // 3. ANGRY / GLOWING EYES & MOUTH
+        c.beginPath();
+        c.moveTo(-4, -20); c.lineTo(-1, -18); // Left Eyebrow
+        c.moveTo(4, -20);  c.lineTo(1, -18);  // Right Eyebrow
+        c.moveTo(-3, -17); c.lineTo(-1, -17); // Left Eye
+        c.moveTo(3, -17);  c.lineTo(1, -17);  // Right Eye
+        c.moveTo(-2, -14); c.lineTo(2, -14);  // Grimace Mouth
+        c.stroke();
+
+        // 4. ARMS & HELD BAT/STICK (Tung Tung's iconic weapon)
+        c.beginPath();
+        // Left Arm
+        c.moveTo(-7, -8); c.lineTo(-12, -2); c.lineTo(-10, 4);
+        // Right Arm (Holding Bat)
+        c.moveTo(7, -8); c.lineTo(13, -4);
+        // Baseball Bat / Drum Stick
+        c.moveTo(13, -16); c.lineTo(11, 8); c.lineTo(15, 8); c.lineTo(17, -16); c.closePath();
+        c.stroke();
+
+        // 5. STICK-FIGURE LEGS & FEET
+        c.beginPath();
+        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16); // Left Leg & Foot
+        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);  // Right Leg & Foot
+        c.stroke();
+
+        // 6. ROCKET THRUSTER BELLS ATTACHED AT BOTTOM
+        c.beginPath();
+        c.moveTo(-8, 16); c.lineTo(-11, 24); c.lineTo(-3, 24); c.lineTo(-4, 16);
+        c.moveTo(4, 16);  c.lineTo(3, 24);   c.lineTo(11, 24); c.lineTo(8, 16);
+        c.stroke();
+        return;
+      }
+
+      // Default procedural vector designs for other rockets
       c.beginPath();
       const variant = id % 5;
       
@@ -978,14 +1034,15 @@
       const hoverTilt = Math.sin(inspectorTime * 1.4) * 0.15;
 
       const variant = inspectingShipIndex % 5;
-      const thrusterCount = (variant === 2 || variant === 4) ? 2 : 1;
+      const isTungTung = ship.name === "TUNG TUNG ROCKET";
+      const thrusterCount = (isTungTung || variant === 2 || variant === 4) ? 2 : 1;
 
       for (let t = 0; t < thrusterCount; t++) {
-        const offsetX = thrusterCount === 2 ? (t === 0 ? -6 : 6) : 0;
+        const offsetX = thrusterCount === 2 ? (t === 0 ? -7 : 7) : 0;
         if (Math.random() < 0.85) {
           inspectorParticles.push({
             x: w / 2 + offsetX + (Math.random() - 0.5) * 4,
-            y: hoverY + 22,
+            y: hoverY + 28,
             vx: (Math.random() - 0.5) * 1.2,
             vy: Math.random() * 4 + 3 * ship.strength,
             life: 1.0,
@@ -1017,12 +1074,12 @@
 
       if (thrusterCount === 2) {
         inspectorCtx.beginPath();
-        inspectorCtx.moveTo(-7, 12);
-        inspectorCtx.lineTo(-5, 12 + flameLength);
-        inspectorCtx.lineTo(-3, 12);
-        inspectorCtx.moveTo(3, 12);
-        inspectorCtx.lineTo(5, 12 + flameLength);
-        inspectorCtx.lineTo(7, 12);
+        inspectorCtx.moveTo(-9, 24);
+        inspectorCtx.lineTo(-7, 24 + flameLength);
+        inspectorCtx.lineTo(-5, 24);
+        inspectorCtx.moveTo(5, 24);
+        inspectorCtx.lineTo(7, 24 + flameLength);
+        inspectorCtx.lineTo(9, 24);
         inspectorCtx.stroke();
       } else {
         inspectorCtx.beginPath();
@@ -1429,7 +1486,7 @@
           event: 'start_countdown',
           payload: {}
         });
-        runCountdown(); // Host triggers countdown locally as well
+        runCountdown();
       }
     }
 
@@ -1474,9 +1531,20 @@
         if (opp.isThrusting) {
           ctx.strokeStyle = '#ffffff';
           ctx.beginPath();
-          ctx.moveTo(-4, 10);
-          ctx.lineTo(0, 10 + Math.random() * 12 + 6);
-          ctx.lineTo(4, 10);
+          const isTungTung = SHIPS[opp.shipIndex] && SHIPS[opp.shipIndex].name === "TUNG TUNG ROCKET";
+          const flameY = isTungTung ? 24 : 10;
+          if (isTungTung) {
+            ctx.moveTo(-9, flameY);
+            ctx.lineTo(-7, flameY + Math.random() * 12 + 6);
+            ctx.lineTo(-5, flameY);
+            ctx.moveTo(5, flameY);
+            ctx.lineTo(7, flameY + Math.random() * 12 + 6);
+            ctx.lineTo(9, flameY);
+          } else {
+            ctx.moveTo(-4, flameY);
+            ctx.lineTo(0, flameY + Math.random() * 12 + 6);
+            ctx.lineTo(4, flameY);
+          }
           ctx.stroke();
         }
 
@@ -1485,7 +1553,7 @@
         ctx.fillStyle = '#ffffff';
         ctx.font = '10px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText(opp.name, opp.x, opp.y - 25);
+        ctx.fillText(opp.name, opp.x, opp.y - 30);
       }
     }
 
@@ -1657,9 +1725,20 @@
         if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING' && !isRaceStarting) {
           ctx.strokeStyle = '#ffffff';
           ctx.beginPath();
-          ctx.moveTo(-4, 10);
-          ctx.lineTo(0, 10 + Math.random() * 12 + 6);
-          ctx.lineTo(4, 10);
+          const isTungTung = SHIPS[equippedShipIndex] && SHIPS[equippedShipIndex].name === "TUNG TUNG ROCKET";
+          const flameY = isTungTung ? 24 : 10;
+          if (isTungTung) {
+            ctx.moveTo(-9, flameY);
+            ctx.lineTo(-7, flameY + Math.random() * 12 + 6);
+            ctx.lineTo(-5, flameY);
+            ctx.moveTo(5, flameY);
+            ctx.lineTo(7, flameY + Math.random() * 12 + 6);
+            ctx.lineTo(9, flameY);
+          } else {
+            ctx.moveTo(-4, flameY);
+            ctx.lineTo(0, flameY + Math.random() * 12 + 6);
+            ctx.lineTo(4, flameY);
+          }
           ctx.stroke();
         }
 
@@ -1668,7 +1747,7 @@
         ctx.fillStyle = '#ffffff';
         ctx.font = '10px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText(playerName, lander.x, lander.y - 25);
+        ctx.fillText(playerName, lander.x, lander.y - 30);
       }
 
       ctx.restore();
@@ -1679,10 +1758,6 @@
       msgSub.innerHTML = subtitle;
       overlay.style.display = 'flex';
     }
-
-    // ==========================================
-    // NAVIGATION & MENU CONTROLS
-    // ==========================================
 
     // Single Player
     document.getElementById('menu-single-btn').addEventListener('click', () => {
