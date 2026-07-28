@@ -546,7 +546,7 @@
     // ==========================================
     const SUPABASE_URL = "https://irdytcbugvkywcefdqhd.supabase.co";
     const SUPABASE_KEY = "sb_publishable_dDYqsTZ1Iz_kp8zVofOv5A_FEKZUbUH";
-    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let roomChannel = null;
     let roomCode = "";
@@ -736,8 +736,8 @@
         if (key === 'thrust') setThrustSound(false);
         btn.classList.remove('active'); 
       };
-      btn.addEventListener('touchstart', start, { passive: false });
-      btn.addEventListener('touchend', end, { passive: false });
+      btn.addEventListener('touchstart', start);
+      btn.addEventListener('touchend', end);
       btn.addEventListener('mousedown', start);
       btn.addEventListener('mouseup', end);
     }
@@ -758,10 +758,10 @@
       { name: "MK-10 NEPTUNE", price: 28000, speed: 1.8, durability: 2.6, strength: 2.5 },
       { name: "MK-11 CENTURION", price: 38000, speed: 2.3, durability: 2.2, strength: 2.7 },
       { name: "MK-12 SUPERNOVA", price: 50000, speed: 2.6, durability: 2.5, strength: 2.9 },
-      { name: "TUNG TUNG ROCKET", price: 67000, speed: 2.7, durability: 2.8, strength: 3.1 },
       { name: "MK-13 HYPERION", price: 68000, speed: 2.4, durability: 3.1, strength: 3.2 },
       { name: "MK-14 ECLIPSE", price: 90000, speed: 2.8, durability: 3.0, strength: 3.5 },
-      { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 }
+      { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 },
+      { name: "TUNG TUNG ROCKET", price: 150000, speed: 3.5, durability: 3.8, strength: 4.2 }
     ];
 
     let credits = parseInt(localStorage.getItem('space_explorer_credits')) || 0;
@@ -790,6 +790,8 @@
     let transitTime = 0;
     let gameState = 'MENU';
     let particles = [];
+    let shoutouts = [];
+    let lastShoutoutTime = 0;
     let stars = [];
     let clouds = [];
     let meteors = [];
@@ -809,7 +811,9 @@
       c.fillStyle = '#ffffff';
       c.lineWidth = 1.2;
 
+      // FULL ACCURATE TUNG TUNG SAHUR VECTOR CHARACTER DESIGN
       if (SHIPS[id] && SHIPS[id].name === "TUNG TUNG ROCKET") {
+        // 1. TUNG TUNG MAIN WOODEN SLIT-DRUM / LOG BODY
         c.beginPath();
         c.moveTo(-6, -26);
         c.lineTo(6, -26);
@@ -818,34 +822,43 @@
         c.closePath();
         c.stroke();
 
+        // Top Rounded Knob / Crown of the wooden log
         c.beginPath();
         c.arc(0, -26, 6, Math.PI, 0);
         c.stroke();
 
+        // 2. CENTRAL SLIT (Traditional Kentongan Slit Drum feature)
         c.beginPath();
         c.moveTo(0, -12);
         c.lineTo(0, 2);
         c.stroke();
 
+        // 3. ANGRY / GLOWING EYES & MOUTH
         c.beginPath();
-        c.moveTo(-4, -20); c.lineTo(-1, -18);
-        c.moveTo(4, -20);  c.lineTo(1, -18);
-        c.moveTo(-3, -17); c.lineTo(-1, -17);
-        c.moveTo(3, -17);  c.lineTo(1, -17);
-        c.moveTo(-2, -14); c.lineTo(2, -14);
+        c.moveTo(-4, -20); c.lineTo(-1, -18); // Left Eyebrow
+        c.moveTo(4, -20);  c.lineTo(1, -18);  // Right Eyebrow
+        c.moveTo(-3, -17); c.lineTo(-1, -17); // Left Eye
+        c.moveTo(3, -17);  c.lineTo(1, -17);  // Right Eye
+        c.moveTo(-2, -14); c.lineTo(2, -14);  // Grimace Mouth
         c.stroke();
 
+        // 4. ARMS & HELD BAT/STICK (Tung Tung's iconic weapon)
         c.beginPath();
+        // Left Arm
         c.moveTo(-7, -8); c.lineTo(-12, -2); c.lineTo(-10, 4);
+        // Right Arm (Holding Bat)
         c.moveTo(7, -8); c.lineTo(13, -4);
+        // Baseball Bat / Drum Stick
         c.moveTo(13, -16); c.lineTo(11, 8); c.lineTo(15, 8); c.lineTo(17, -16); c.closePath();
         c.stroke();
 
+        // 5. STICK-FIGURE LEGS & FEET
         c.beginPath();
-        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16);
-        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);
+        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16); // Left Leg & Foot
+        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);  // Right Leg & Foot
         c.stroke();
 
+        // 6. ROCKET THRUSTER BELLS ATTACHED AT BOTTOM
         c.beginPath();
         c.moveTo(-8, 16); c.lineTo(-11, 24); c.lineTo(-3, 24); c.lineTo(-4, 16);
         c.moveTo(4, 16);  c.lineTo(3, 24);   c.lineTo(11, 24); c.lineTo(8, 16);
@@ -853,6 +866,7 @@
         return;
       }
 
+      // Default procedural vector designs for other rockets
       c.beginPath();
       const variant = id % 5;
       
@@ -896,7 +910,7 @@
           statusText = 'LOCKED';
         }
 
-        const renderBar = (val, max = 4.0) => {
+        const renderBar = (val, max = 4.2) => {
           const fillRatio = Math.min(1.0, val / max);
           const blocks = Math.round(fillRatio * 8);
           return '█'.repeat(blocks) + '░'.repeat(8 - blocks);
@@ -905,9 +919,9 @@
         card.innerHTML = `
           <canvas id="${canvasId}" class="ship-preview-canvas" width="90" height="90"></canvas>
           <div class="ship-name">${ship.name}</div>
-          <div class="ship-stat-bar">SPD: ${renderBar(ship.speed, 3.5)}</div>
-          <div class="ship-stat-bar">ARM: ${renderBar(ship.durability, 3.5)}</div>
-          <div class="ship-stat-bar">THR: ${renderBar(ship.strength, 4.0)}</div>
+          <div class="ship-stat-bar">SPD: ${renderBar(ship.speed, 4.2)}</div>
+          <div class="ship-stat-bar">ARM: ${renderBar(ship.durability, 4.2)}</div>
+          <div class="ship-stat-bar">THR: ${renderBar(ship.strength, 4.2)}</div>
           <div class="ship-price">${statusText}</div>
         `;
 
@@ -1037,6 +1051,11 @@
             size: Math.random() * 2 + 1
           });
         }
+      }
+
+      // Tung Tung shoutouts in inspector
+      if (isTungTung && Math.random() < 0.05) {
+        spawnShoutout(w / 2 + (Math.random() - 0.5) * 40, hoverY - 20);
       }
 
       inspectorCtx.fillStyle = '#ffffff';
@@ -1271,6 +1290,46 @@
       }
     }
 
+    function spawnShoutout(x, y) {
+      const phrases = ["TUNG TUNG!", "tung tung!", "TUNG TUNG SAHUR!", "TUNG! TUNG!"];
+      shoutouts.push({
+        text: phrases[Math.floor(Math.random() * phrases.length)],
+        x: x + (Math.random() - 0.5) * 30,
+        y: y + (Math.random() - 0.5) * 10,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: -Math.random() * 1.8 - 0.8,
+        life: 1.0,
+        scale: Math.random() * 0.4 + 0.8
+      });
+    }
+
+    function updateShoutouts() {
+      shoutouts.forEach(s => {
+        s.x += s.vx;
+        s.y += s.vy;
+        s.life -= 0.02;
+        s.scale += 0.008;
+      });
+      shoutouts = shoutouts.filter(s => s.life > 0);
+    }
+
+    function drawShoutouts(cCtx = ctx) {
+      shoutouts.forEach(s => {
+        cCtx.save();
+        cCtx.translate(s.x, s.y);
+        cCtx.scale(s.scale, s.scale);
+        cCtx.fillStyle = '#ffffff';
+        cCtx.globalAlpha = Math.max(0, s.life);
+        cCtx.font = 'bold 12px "Courier New", monospace';
+        cCtx.textAlign = 'center';
+        cCtx.shadowColor = '#000000';
+        cCtx.shadowBlur = 4;
+        cCtx.fillText(s.text, 0, 0);
+        cCtx.restore();
+      });
+      cCtx.globalAlpha = 1.0;
+    }
+
     function updateParticles() {
       particles.forEach(p => {
         p.x += p.vx;
@@ -1283,7 +1342,7 @@
     function drawParticles() {
       ctx.fillStyle = '#ffffff';
       particles.forEach(p => {
-        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.globalAlpha = p.life;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       });
       ctx.globalAlpha = 1.0;
@@ -1396,10 +1455,6 @@
     // MULTIPLAYER BROADCAST LOGIC
     // ==========================================
     function connectToSupabaseRoom(code) {
-      if (!supabaseClient) {
-        alert("Supabase library not loaded. Check internet connection.");
-        return;
-      }
       roomCode = code.toUpperCase();
       roomChannel = supabaseClient.channel(`room_${roomCode}`);
 
@@ -1552,6 +1607,7 @@
     function update() {
       if (gameState !== 'PLAYING') {
         updateParticles();
+        updateShoutouts();
         if (screenShake > 0) screenShake *= 0.9;
         return;
       }
@@ -1582,6 +1638,12 @@
           }
           
           lander.fuel = Math.max(0, lander.fuel - (0.08 / ship.strength));
+
+          // Trigger Tung Tung word animation popup when flying!
+          if (ship.name === "TUNG TUNG ROCKET" && Date.now() - lastShoutoutTime > 400 && Math.random() < 0.25) {
+            lastShoutoutTime = Date.now();
+            spawnShoutout(lander.x, lander.y - 15);
+          }
         }
 
         if (currentWorld === 'SPACE') {
@@ -1616,6 +1678,8 @@
       updateWorldTransitions();
       checkTerrainCollision();
       broadcastMyPosition();
+      updateParticles();
+      updateShoutouts();
     }
 
     function draw() {
@@ -1705,6 +1769,7 @@
       }
 
       drawParticles();
+      drawShoutouts();
       drawOpponents();
 
       if (gameState === 'PLAYING' || gameState === 'LANDED') {
