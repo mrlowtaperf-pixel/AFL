@@ -546,7 +546,7 @@
     // ==========================================
     const SUPABASE_URL = "https://irdytcbugvkywcefdqhd.supabase.co";
     const SUPABASE_KEY = "sb_publishable_dDYqsTZ1Iz_kp8zVofOv5A_FEKZUbUH";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
     let roomChannel = null;
     let roomCode = "";
@@ -736,8 +736,8 @@
         if (key === 'thrust') setThrustSound(false);
         btn.classList.remove('active'); 
       };
-      btn.addEventListener('touchstart', start);
-      btn.addEventListener('touchend', end);
+      btn.addEventListener('touchstart', start, { passive: false });
+      btn.addEventListener('touchend', end, { passive: false });
       btn.addEventListener('mousedown', start);
       btn.addEventListener('mouseup', end);
     }
@@ -809,9 +809,7 @@
       c.fillStyle = '#ffffff';
       c.lineWidth = 1.2;
 
-      // FULL ACCURATE TUNG TUNG SAHUR VECTOR CHARACTER DESIGN
       if (SHIPS[id] && SHIPS[id].name === "TUNG TUNG ROCKET") {
-        // 1. TUNG TUNG MAIN WOODEN SLIT-DRUM / LOG BODY
         c.beginPath();
         c.moveTo(-6, -26);
         c.lineTo(6, -26);
@@ -820,43 +818,34 @@
         c.closePath();
         c.stroke();
 
-        // Top Rounded Knob / Crown of the wooden log
         c.beginPath();
         c.arc(0, -26, 6, Math.PI, 0);
         c.stroke();
 
-        // 2. CENTRAL SLIT (Traditional Kentongan Slit Drum feature)
         c.beginPath();
         c.moveTo(0, -12);
         c.lineTo(0, 2);
         c.stroke();
 
-        // 3. ANGRY / GLOWING EYES & MOUTH
         c.beginPath();
-        c.moveTo(-4, -20); c.lineTo(-1, -18); // Left Eyebrow
-        c.moveTo(4, -20);  c.lineTo(1, -18);  // Right Eyebrow
-        c.moveTo(-3, -17); c.lineTo(-1, -17); // Left Eye
-        c.moveTo(3, -17);  c.lineTo(1, -17);  // Right Eye
-        c.moveTo(-2, -14); c.lineTo(2, -14);  // Grimace Mouth
+        c.moveTo(-4, -20); c.lineTo(-1, -18);
+        c.moveTo(4, -20);  c.lineTo(1, -18);
+        c.moveTo(-3, -17); c.lineTo(-1, -17);
+        c.moveTo(3, -17);  c.lineTo(1, -17);
+        c.moveTo(-2, -14); c.lineTo(2, -14);
         c.stroke();
 
-        // 4. ARMS & HELD BAT/STICK (Tung Tung's iconic weapon)
         c.beginPath();
-        // Left Arm
         c.moveTo(-7, -8); c.lineTo(-12, -2); c.lineTo(-10, 4);
-        // Right Arm (Holding Bat)
         c.moveTo(7, -8); c.lineTo(13, -4);
-        // Baseball Bat / Drum Stick
         c.moveTo(13, -16); c.lineTo(11, 8); c.lineTo(15, 8); c.lineTo(17, -16); c.closePath();
         c.stroke();
 
-        // 5. STICK-FIGURE LEGS & FEET
         c.beginPath();
-        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16); // Left Leg & Foot
-        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);  // Right Leg & Foot
+        c.moveTo(-4, 8); c.lineTo(-6, 16); c.lineTo(-10, 16);
+        c.moveTo(4, 8);  c.lineTo(6, 16);  c.lineTo(10, 16);
         c.stroke();
 
-        // 6. ROCKET THRUSTER BELLS ATTACHED AT BOTTOM
         c.beginPath();
         c.moveTo(-8, 16); c.lineTo(-11, 24); c.lineTo(-3, 24); c.lineTo(-4, 16);
         c.moveTo(4, 16);  c.lineTo(3, 24);   c.lineTo(11, 24); c.lineTo(8, 16);
@@ -864,7 +853,6 @@
         return;
       }
 
-      // Default procedural vector designs for other rockets
       c.beginPath();
       const variant = id % 5;
       
@@ -1295,7 +1283,7 @@
     function drawParticles() {
       ctx.fillStyle = '#ffffff';
       particles.forEach(p => {
-        ctx.globalAlpha = p.life;
+        ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillRect(p.x, p.y, p.size, p.size);
       });
       ctx.globalAlpha = 1.0;
@@ -1408,6 +1396,10 @@
     // MULTIPLAYER BROADCAST LOGIC
     // ==========================================
     function connectToSupabaseRoom(code) {
+      if (!supabaseClient) {
+        alert("Supabase library not loaded. Check internet connection.");
+        return;
+      }
       roomCode = code.toUpperCase();
       roomChannel = supabaseClient.channel(`room_${roomCode}`);
 
