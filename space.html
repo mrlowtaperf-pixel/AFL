@@ -14,6 +14,22 @@
       padding: 0;
     }
 
+    /* CUSTOM BLACK SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #050505;
+      border-left: 1px solid #222222;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333333;
+      border-radius: 0px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555555;
+    }
+
     body, html {
       width: 100%;
       height: 100%;
@@ -47,6 +63,7 @@
       font-size: 13px;
       letter-spacing: 2px;
       text-shadow: 0 0 3px #000000;
+      z-index: 5;
     }
 
     .hud-column {
@@ -60,25 +77,24 @@
       font-weight: bold;
     }
 
-    .warning {
-      color: #ff5555;
-      animation: blink 0.4s infinite alternate;
-    }
-
     #flight-progress-container {
       position: absolute;
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 280px;
+      width: 340px;
       text-align: center;
-      pointer-events: none;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 5;
     }
 
     #progress-label {
       font-size: 11px;
       letter-spacing: 2px;
-      margin-bottom: 5px;
     }
 
     #progress-bar-outer {
@@ -95,6 +111,164 @@
       transition: width 0.2s linear;
     }
 
+    .redirect-btn {
+      background: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      border: 1px solid #ffffff;
+      padding: 4px 10px;
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s;
+    }
+
+    .redirect-btn:hover {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    /* MENU / OVERLAY STYLES */
+    .screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.94);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      padding: 20px;
+    }
+
+    .menu-title {
+      font-size: 28px;
+      letter-spacing: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .menu-subtitle {
+      font-size: 13px;
+      color: #aaaaaa;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+    }
+
+    .menu-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 260px;
+    }
+
+    .btn-action {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #ffffff;
+      padding: 12px 20px;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      letter-spacing: 3px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover:not(:disabled) {
+      background: #000000;
+      color: #ffffff;
+    }
+
+    .btn-action:disabled {
+      background: #222222;
+      color: #666666;
+      border-color: #444444;
+      cursor: not-allowed;
+    }
+
+    /* SHOP GRID */
+    #shop-screen {
+      display: none;
+    }
+
+    .credits-display {
+      font-size: 15px;
+      color: #ffffff;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      border-bottom: 1px solid #333333;
+      padding-bottom: 8px;
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      width: 100%;
+      max-width: 1000px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 15px;
+      border: 1px solid #222222;
+      background: #050505;
+    }
+
+    .shop-card {
+      border: 1px solid #333333;
+      background: #000000;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .shop-card.equipped {
+      border-color: #ffffff;
+      background: #111111;
+    }
+
+    .shop-card.locked {
+      opacity: 0.5;
+    }
+
+    .ship-preview-canvas {
+      width: 80px;
+      height: 80px;
+      background: #080808;
+      border: 1px solid #222222;
+      margin-bottom: 5px;
+    }
+
+    .ship-name {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .ship-stat-bar {
+      font-size: 10px;
+      color: #888888;
+      width: 100%;
+      text-align: left;
+    }
+
+    .ship-price {
+      font-size: 11px;
+      color: #ffffff;
+      font-weight: bold;
+      margin-top: 5px;
+      letter-spacing: 1px;
+    }
+
     .touch-controls {
       position: absolute;
       bottom: 25px;
@@ -104,6 +278,7 @@
       display: flex;
       justify-content: space-between;
       pointer-events: none;
+      z-index: 5;
     }
 
     .touch-btn {
@@ -126,52 +301,6 @@
       border-color: #ffffff;
       color: #ffffff;
     }
-
-    #message-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      pointer-events: auto;
-      background: #000000;
-      border: 1px solid #ffffff;
-      padding: 35px 50px;
-      border-radius: 0px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
-    }
-
-    #message-title {
-      font-size: 22px;
-      margin-bottom: 15px;
-      letter-spacing: 6px;
-    }
-
-    #message-sub {
-      font-size: 12px;
-      margin-bottom: 25px;
-      color: #aaaaaa;
-      line-height: 1.8;
-      letter-spacing: 1px;
-    }
-
-    .btn-action {
-      background: #ffffff;
-      color: #000000;
-      border: 1px solid #ffffff;
-      padding: 12px 30px;
-      font-family: inherit;
-      font-weight: bold;
-      font-size: 13px;
-      cursor: pointer;
-      letter-spacing: 3px;
-      transition: all 0.2s;
-    }
-
-    .btn-action:hover {
-      background: #000000;
-      color: #ffffff;
-    }
   </style>
 </head>
 <body>
@@ -183,7 +312,7 @@
       <div class="hud-column">
         <div>LOCATION: <span id="location" class="hud-value">MOON SURFACE</span></div>
         <div>FUEL: <span id="fuel" class="hud-value">100%</span></div>
-        <div>METEORS DODGED: <span id="meteors-dodged" class="hud-value">0</span></div>
+        <div>CREDITS: <span id="credits" class="hud-value">$0</span></div>
       </div>
       <div class="hud-column" style="text-align: right;">
         <div>ALTITUDE: <span id="altitude" class="hud-value">0 m</span></div>
@@ -194,23 +323,40 @@
     </div>
 
     <div id="flight-progress-container">
-      <div id="progress-label">TRANSIT PROGRESS: 0%</div>
+      <div id="progress-label">DISTANCE REMAINING: 384,400 km</div>
       <div id="progress-bar-outer">
         <div id="progress-bar-inner"></div>
       </div>
+      <button id="turnaround-btn" class="redirect-btn">↩ TURN AROUND MID-FLIGHT</button>
     </div>
 
-    <div id="message-overlay">
-      <div id="message-title">EARTH-MOON TRANSIT SYSTEM</div>
-      <div id="message-sub">
-        1. <b>Land safely</b> on a landing pad first.<br>
-        2. Fly up into deep space.<br>
-        3. Steering controls are now super responsive for dodging meteors!<br><br>
-        <b>CONTROLS:</b><br>
-        [W / UP ARROW] Main Thrusters<br>
-        [A / D / LEFT / RIGHT] Attitude RCS Thrusters
+    <div id="main-menu" class="screen-overlay">
+      <div class="menu-title">SPACE EXPLORER</div>
+      <div class="menu-subtitle">EARTH & LUNAR TRANSIT PROGRAM</div>
+      <div class="menu-btn-group">
+        <button class="btn-action" id="menu-start-btn">START GAME</button>
+        <button class="btn-action" id="menu-shop-btn">ROCKET SHOP</button>
       </div>
-      <button class="btn-action" id="start-btn">START MISSION</button>
+    </div>
+
+    <div id="shop-screen" class="screen-overlay">
+      <div class="menu-title">HANGAR & TECH TREE</div>
+      <div class="credits-display">AVAILABLE CREDITS: <span id="shop-credits">$0</span></div>
+      
+      <div class="shop-grid" id="shop-grid"></div>
+
+      <div style="margin-top: 20px;">
+        <button class="btn-action" id="shop-back-btn">BACK TO MENU</button>
+      </div>
+    </div>
+
+    <div id="message-overlay" class="screen-overlay" style="display: none;">
+      <div class="menu-title" id="message-title">EARTH-MOON TRANSIT</div>
+      <div class="menu-subtitle" id="message-sub">Land safely or fly into space!</div>
+      <div class="menu-btn-group">
+        <button class="btn-action" id="start-btn">CONTINUE</button>
+        <button class="btn-action" id="overlay-menu-btn">MAIN MENU</button>
+      </div>
     </div>
 
     <div class="touch-controls">
@@ -224,19 +370,25 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
+    // UI Elements
     const locationEl = document.getElementById('location');
     const fuelEl = document.getElementById('fuel');
-    const meteorsDodgedEl = document.getElementById('meteors-dodged');
+    const creditsEl = document.getElementById('credits');
+    const shopCreditsEl = document.getElementById('shop-credits');
     const altEl = document.getElementById('altitude');
     const hSpeedEl = document.getElementById('hspeed');
     const vSpeedEl = document.getElementById('vspeed');
     const tiltEl = document.getElementById('tilt');
+    
+    const mainMenu = document.getElementById('main-menu');
+    const shopScreen = document.getElementById('shop-screen');
     const overlay = document.getElementById('message-overlay');
     const msgTitle = document.getElementById('message-title');
     const msgSub = document.getElementById('message-sub');
-    const startBtn = document.getElementById('start-btn');
+    
     const progressLabel = document.getElementById('progress-label');
     const progressBarInner = document.getElementById('progress-bar-inner');
+    const turnaroundBtn = document.getElementById('turnaround-btn');
 
     let width, height;
 
@@ -246,9 +398,11 @@
       canvas.width = width;
       canvas.height = height;
       generateStars();
+      generateClouds();
     }
     window.addEventListener('resize', resize);
 
+    // Audio Engine
     let audioCtx = null;
     let thrustNoiseNode = null;
     let thrustGainNode = null;
@@ -256,13 +410,10 @@
     function initAudio() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         const bufferSize = audioCtx.sampleRate * 2;
         const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          output[i] = Math.random() * 2 - 1;
-        }
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
 
         thrustNoiseNode = audioCtx.createBufferSource();
         thrustNoiseNode.buffer = noiseBuffer;
@@ -280,14 +431,12 @@
         thrustGainNode.connect(audioCtx.destination);
         thrustNoiseNode.start();
       }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
     function setThrustSound(active) {
       if (!thrustGainNode || !audioCtx) return;
-      thrustGainNode.gain.setTargetAtTime(active ? 0.25 : 0, audioCtx.currentTime, 0.05);
+      thrustGainNode.gain.setValueAtTime(active ? 0.2 : 0, audioCtx.currentTime);
     }
 
     function playRcsSound() {
@@ -335,6 +484,7 @@
       osc.stop(audioCtx.currentTime + 0.5);
     }
 
+    // Controls
     const keys = { left: false, right: false, thrust: false };
 
     window.addEventListener('keydown', (e) => {
@@ -348,10 +498,19 @@
         if (!keys.right) playRcsSound();
         keys.right = true;
       }
+
+      // CHEAT CODE: Press 'C' key to add $10,000 instantly
+      if (e.code === 'KeyC') {
+        credits += 10000;
+        updateCreditsUI();
+      }
     });
 
     window.addEventListener('keyup', (e) => {
-      if (['ArrowUp', 'KeyW'].includes(e.code)) keys.thrust = false;
+      if (['ArrowUp', 'KeyW'].includes(e.code)) {
+        keys.thrust = false;
+        setThrustSound(false);
+      }
       if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
       if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
     });
@@ -368,6 +527,7 @@
       const end = (e) => { 
         e.preventDefault(); 
         keys[key] = false; 
+        if (key === 'thrust') setThrustSound(false);
         btn.classList.remove('active'); 
       };
       btn.addEventListener('touchstart', start);
@@ -379,27 +539,175 @@
     setupTouch('btn-thrust', 'thrust');
     setupTouch('btn-right', 'right');
 
-    const GRAVITY_SURFACE = 0.022;
-    const THRUST = 0.08;
-    const ROTATION_SPEED = 0.08; // Increased rotation speed for easier turn
-    const SAFE_SPEED = 2.0;
-    const SAFE_ANGLE = 12 * (Math.PI / 180);
+    // 15 PROGRESSIVE ROCKET SHIPS DATA
+    const SHIPS = [
+      { name: "MK-1 SCOUT", price: 0, speed: 1.0, durability: 1.0, strength: 1.0 },
+      { name: "MK-2 APOLLO", price: 400, speed: 1.1, durability: 1.2, strength: 1.1 },
+      { name: "MK-3 HOPPER", price: 1000, speed: 1.3, durability: 1.1, strength: 1.2 },
+      { name: "MK-4 HORIZON", price: 2000, speed: 1.4, durability: 1.4, strength: 1.3 },
+      { name: "MK-5 TITAN", price: 3800, speed: 1.2, durability: 1.9, strength: 1.6 },
+      { name: "MK-6 METEOR", price: 6000, speed: 1.7, durability: 1.3, strength: 1.5 },
+      { name: "MK-7 CLIPPER", price: 9500, speed: 1.9, durability: 1.5, strength: 1.7 },
+      { name: "MK-8 VANGUARD", price: 14000, speed: 1.5, durability: 2.3, strength: 2.0 },
+      { name: "MK-9 PHOENIX", price: 20000, speed: 2.1, durability: 1.8, strength: 2.2 },
+      { name: "MK-10 NEPTUNE", price: 28000, speed: 1.8, durability: 2.6, strength: 2.5 },
+      { name: "MK-11 CENTURION", price: 38000, speed: 2.3, durability: 2.2, strength: 2.7 },
+      { name: "MK-12 SUPERNOVA", price: 50000, speed: 2.6, durability: 2.5, strength: 2.9 },
+      { name: "MK-13 HYPERION", price: 68000, speed: 2.4, durability: 3.1, strength: 3.2 },
+      { name: "MK-14 ECLIPSE", price: 90000, speed: 2.8, durability: 3.0, strength: 3.5 },
+      { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 }
+    ];
+
+    // PERSISTENT LOCALSTORAGE CURRENCY & SAVE SYSTEM
+    let credits = parseInt(localStorage.getItem('space_explorer_credits')) || 0;
+    let equippedShipIndex = parseInt(localStorage.getItem('space_explorer_equipped')) || 0;
     
+    // Default: Only first ship unlocked
+    let defaultBoughtArray = new Array(SHIPS.length).fill(false);
+    defaultBoughtArray[0] = true;
+
+    let boughtShips = JSON.parse(localStorage.getItem('space_explorer_bought')) || defaultBoughtArray;
+    if (boughtShips.length < SHIPS.length) {
+      while(boughtShips.length < SHIPS.length) boughtShips.push(false);
+    }
+
+    function saveGameData() {
+      localStorage.setItem('space_explorer_credits', Math.floor(credits));
+      localStorage.setItem('space_explorer_equipped', equippedShipIndex);
+      localStorage.setItem('space_explorer_bought', JSON.stringify(boughtShips));
+    }
+
+    const GRAVITY_SURFACE = 0.022;
+    const TOTAL_DISTANCE_KM = 384400; 
     const TOTAL_TRANSIT_REQUIRED = 300; 
 
     let currentWorld = 'MOON'; 
     let travelDirection = 'TO_EARTH';
     let transitTime = 0;
-    let gameState = 'START';
-    let score = 0;
-    let meteorsDodged = 0;
+    let gameState = 'MENU';
     let particles = [];
     let stars = [];
+    let clouds = [];
     let meteors = [];
     let terrainPoints = [];
     let landingPads = [];
     let screenShake = 0;
     let spaceOffsetY = 0;
+
+    function updateCreditsUI() {
+      saveGameData();
+      creditsEl.textContent = `$${Math.floor(credits).toLocaleString()}`;
+      shopCreditsEl.textContent = `$${Math.floor(credits).toLocaleString()}`;
+    }
+
+    // DRAW UNIQUE VECTOR ROCKET DESIGNS
+    function drawShipVector(c, id) {
+      c.strokeStyle = '#ffffff';
+      c.fillStyle = '#ffffff';
+      c.lineWidth = 1.2;
+
+      c.beginPath();
+      const variant = id % 5;
+      
+      if (variant === 0) { // Standard Lander
+        c.moveTo(-6, 2); c.lineTo(-6, -8); c.lineTo(0, -14 - id); c.lineTo(6, -8); c.lineTo(6, 2); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-6, 8); c.lineTo(-12 - id*0.5, 15); c.moveTo(6, 8); c.lineTo(12 + id*0.5, 15); c.stroke();
+      } else if (variant === 1) { // Apollo Pod
+        c.moveTo(-8, 8); c.lineTo(-8, -12); c.lineTo(0, -18 - id); c.lineTo(8, -12); c.lineTo(8, 8); c.closePath(); c.stroke();
+        c.beginPath(); c.arc(0, -4, 3, 0, Math.PI*2); c.stroke();
+        c.beginPath(); c.moveTo(-8, 8); c.lineTo(-14 - id*0.3, 16); c.moveTo(8, 8); c.lineTo(14 + id*0.3, 16); c.stroke();
+      } else if (variant === 2) { // Heavy Cruiser
+        c.moveTo(-12, 10); c.lineTo(-12, -10); c.lineTo(-6, -16 - id); c.lineTo(6, -16 - id); c.lineTo(12, -10); c.lineTo(12, 10); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-12, 10); c.lineTo(-16 - id*0.4, 18); c.moveTo(12, 10); c.lineTo(16 + id*0.4, 18); c.stroke();
+      } else if (variant === 3) { // Arrow Dart
+        c.moveTo(-7, 8); c.lineTo(0, -18 - id*1.2); c.lineTo(7, 8); c.lineTo(0, 4); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-4, 6); c.lineTo(-12 - id*0.5, 12); c.moveTo(4, 6); c.lineTo(12 + id*0.5, 12); c.stroke();
+      } else { // Winged Sovereign
+        c.moveTo(-8, 12); c.lineTo(-4, -22 - id); c.lineTo(0, -26 - id); c.lineTo(4, -22 - id); c.lineTo(8, 12); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-4, 2); c.lineTo(-18 - id*0.6, 14); c.lineTo(-18 - id*0.6, 4); c.lineTo(-4, -6); c.stroke();
+        c.beginPath(); c.moveTo(4, 2); c.lineTo(18 + id*0.6, 14); c.lineTo(18 + id*0.6, 4); c.lineTo(4, -6); c.stroke();
+      }
+    }
+
+    function renderShop() {
+      const grid = document.getElementById('shop-grid');
+      grid.innerHTML = '';
+
+      SHIPS.forEach((ship, index) => {
+        const isBought = boughtShips[index];
+        // Enforce linear progression: Can only buy if the previous ship is owned!
+        const canBuy = index === 0 || boughtShips[index - 1];
+
+        const card = document.createElement('div');
+        card.className = `shop-card ${equippedShipIndex === index ? 'equipped' : ''} ${!canBuy && !isBought ? 'locked' : ''}`;
+        
+        const canvasId = `preview-canvas-${index}`;
+
+        let statusText = '$' + ship.price.toLocaleString();
+        if (isBought) {
+          statusText = equippedShipIndex === index ? 'EQUIPPED' : 'OWNED';
+        } else if (!canBuy) {
+          statusText = 'LOCKED';
+        }
+
+        card.innerHTML = `
+          <canvas id="${canvasId}" class="ship-preview-canvas" width="80" height="80"></canvas>
+          <div class="ship-name">${ship.name}</div>
+          <div class="ship-stat-bar">SPEED: ${'★'.repeat(Math.min(5, Math.round(ship.speed * 1.5)))}</div>
+          <div class="ship-stat-bar">DURABILITY: ${'★'.repeat(Math.min(5, Math.round(ship.durability * 1.3)))}</div>
+          <div class="ship-stat-bar">STRENGTH: ${'★'.repeat(Math.min(5, Math.round(ship.strength * 1.2)))}</div>
+          <div class="ship-price">${statusText}</div>
+        `;
+
+        const actionBtn = document.createElement('button');
+        actionBtn.className = 'btn-action';
+        actionBtn.style.padding = '6px 12px';
+        actionBtn.style.fontSize = '10px';
+        actionBtn.style.marginTop = '6px';
+
+        if (equippedShipIndex === index) {
+          actionBtn.textContent = 'EQUIPPED';
+          actionBtn.disabled = true;
+        } else if (isBought) {
+          actionBtn.textContent = 'EQUIP';
+          actionBtn.onclick = () => {
+            equippedShipIndex = index;
+            saveGameData();
+            renderShop();
+          };
+        } else if (!canBuy) {
+          actionBtn.textContent = 'REQUIRES PREV SHIP';
+          actionBtn.disabled = true;
+        } else {
+          actionBtn.textContent = 'BUY';
+          actionBtn.onclick = () => {
+            if (credits >= ship.price) {
+              credits -= ship.price;
+              boughtShips[index] = true;
+              equippedShipIndex = index;
+              updateCreditsUI();
+              renderShop();
+            } else {
+              alert('Not enough credits!');
+            }
+          };
+        }
+
+        card.appendChild(actionBtn);
+        grid.appendChild(card);
+
+        setTimeout(() => {
+          const pCanvas = document.getElementById(canvasId);
+          if (pCanvas) {
+            const pCtx = pCanvas.getContext('2d');
+            pCtx.save();
+            pCtx.translate(40, 45);
+            drawShipVector(pCtx, index);
+            pCtx.restore();
+          }
+        }, 10);
+      });
+    }
 
     function generateStars() {
       stars = [];
@@ -414,6 +722,18 @@
       }
     }
 
+    function generateClouds() {
+      clouds = [];
+      for (let i = 0; i < 8; i++) {
+        clouds.push({
+          x: Math.random() * width,
+          y: Math.random() * (height * 0.45) + 30,
+          vx: Math.random() * 0.3 + 0.1,
+          radius: Math.random() * 35 + 25
+        });
+      }
+    }
+
     const lander = {
       x: 0,
       y: 0,
@@ -421,8 +741,6 @@
       vy: 0,
       angle: 0,
       fuel: 1000,
-      totalRotation: 0,
-      flips: 0,
       reset: function() {
         this.x = width * 0.3;
         this.y = 120;
@@ -430,8 +748,6 @@
         this.vy = 0.5;
         this.angle = 0;
         this.fuel = 1000;
-        this.totalRotation = 0;
-        this.flips = 0;
       }
     };
 
@@ -450,9 +766,9 @@
         let x = i * step;
 
         if (i === pad1Index || i === pad1Index + 1 || i === pad1Index + 2 || i === pad2Index || i === pad2Index + 1 || i === pad2Index + 2) {
-          // Flat pad
+          // Flat land
         } else {
-          currentY += (Math.random() - 0.5) * (worldType === 'MOON' ? 60 : 40);
+          currentY += (Math.random() - 0.5) * (worldType === 'MOON' ? 60 : 30);
           currentY = Math.max(height - 220, Math.min(height - 50, currentY));
         }
 
@@ -498,15 +814,15 @@
         return;
       }
 
-      if (Math.random() < 0.04 && meteors.length < 12) {
-        spawnMeteor();
-      }
+      if (Math.random() < 0.04 && meteors.length < 12) spawnMeteor();
+
+      const ship = SHIPS[equippedShipIndex];
 
       meteors.forEach(m => {
         m.x += m.vx;
         
         if (keys.thrust && lander.fuel > 0) {
-          m.y += m.vy + (Math.cos(lander.angle) * THRUST * 8);
+          m.y += m.vy + (Math.cos(lander.angle) * 0.12 * ship.speed * 8);
         } else {
           m.y += m.vy;
         }
@@ -523,16 +839,11 @@
           playExplosionSound();
           screenShake = 20;
           createExplosion(lander.x, lander.y);
-          showOverlay("METEOR IMPACT!", "A meteor destroyed your lander in space!");
+          showOverlay("METEOR IMPACT!", "A meteor destroyed your ship in space!");
         }
       });
 
-      const activeCount = meteors.length;
       meteors = meteors.filter(m => m.x >= -50 && m.x <= width + 50 && m.y >= -50 && m.y <= height + 50);
-      if (activeCount > meteors.length) {
-        meteorsDodged++;
-        meteorsDodgedEl.textContent = meteorsDodged;
-      }
     }
 
     function drawMeteors() {
@@ -597,6 +908,8 @@
     function checkTerrainCollision() {
       if (currentWorld === 'SPACE' || !terrainPoints || terrainPoints.length === 0) return;
 
+      const ship = SHIPS[equippedShipIndex];
+
       for (let i = 0; i < terrainPoints.length - 1; i++) {
         const p1 = terrainPoints[i];
         const p2 = terrainPoints[i + 1];
@@ -614,22 +927,26 @@
 
             const pad = landingPads.find(p => lander.x >= p.x1 && lander.x <= p.x2);
 
-            if (pad && speed <= SAFE_SPEED && normalizedAngle <= SAFE_ANGLE) {
+            const maxSafeSpeed = 2.0 * ship.durability;
+
+            if (pad && speed <= maxSafeSpeed && normalizedAngle <= (12 * Math.PI / 180)) {
               gameState = 'LANDED';
               setThrustSound(false);
               playChimeSound();
-              const basePoints = 200 * pad.multiplier;
-              score += basePoints;
+              
+              const bonusCredits = 500 * pad.multiplier;
+              credits += bonusCredits;
+              updateCreditsUI();
 
               createExplosion(lander.x, lander.y + 12, true);
-              showOverlay(`SUCCESSFUL LANDING ON ${currentWorld}!`, `PAD MULTIPLIER: x${pad.multiplier}<br>Click below to lift off and fly straight up into space!`);
+              showOverlay(`LANDED ON ${currentWorld}!`, `PAD MULTIPLIER: x${pad.multiplier}<br>EARNED: +$${bonusCredits} CREDITS!`);
             } else {
               gameState = 'CRASHED';
               setThrustSound(false);
               playExplosionSound();
               screenShake = 15;
               createExplosion(lander.x, lander.y);
-              showOverlay("CRASH LANDED!", speed > SAFE_SPEED ? "LANDING SPEED TOO FAST" : "LANDING ANGLE TOO STEEP");
+              showOverlay("CRASH LANDED!", speed > maxSafeSpeed ? "LANDING SPEED TOO FAST" : "LANDING ANGLE TOO STEEP");
             }
           }
           break;
@@ -637,10 +954,19 @@
       }
     }
 
+    turnaroundBtn.addEventListener('click', () => {
+      if (currentWorld !== 'SPACE') return;
+      travelDirection = travelDirection === 'TO_EARTH' ? 'TO_MOON' : 'TO_EARTH';
+      transitTime = TOTAL_TRANSIT_REQUIRED - transitTime;
+      locationEl.textContent = `DEEP SPACE (${travelDirection === 'TO_EARTH' ? 'BOUND FOR EARTH' : 'BOUND FOR MOON'})`;
+      playRcsSound();
+    });
+
     function updateWorldTransitions() {
-      if ((currentWorld === 'MOON' || currentWorld === 'EARTH') && lander.y < -15) {
+      if ((currentWorld === 'MOON' || currentWorld === 'EARTH') && lander.y < -50) {
         travelDirection = currentWorld === 'MOON' ? 'TO_EARTH' : 'TO_MOON';
         currentWorld = 'SPACE';
+        transitTime = 0;
         
         lander.y = height * 0.5;
         lander.vy = 0;
@@ -648,31 +974,38 @@
       }
 
       if (currentWorld === 'SPACE') {
-        const thrustBonus = (keys.thrust && lander.fuel > 0) ? 3.0 : 1.0;
+        turnaroundBtn.style.display = 'block';
+        turnaroundBtn.textContent = travelDirection === 'TO_EARTH' ? '↩ RETURN TO MOON' : '↩ RETURN TO EARTH';
+
+        const ship = SHIPS[equippedShipIndex];
+        const thrustBonus = (keys.thrust && lander.fuel > 0) ? (3.0 * ship.speed) : (1.0 * ship.speed);
+        
         transitTime += (1 / 60) * thrustBonus;
 
-        const progressPercent = Math.min(100, Math.floor((transitTime / TOTAL_TRANSIT_REQUIRED) * 100));
-        
-        const remainingSeconds = Math.max(0, Math.ceil(TOTAL_TRANSIT_REQUIRED - transitTime));
-        const mins = Math.floor(remainingSeconds / 60);
-        const secs = remainingSeconds % 60;
-        const timeFormatted = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        credits += 0.2 * ship.strength;
+        updateCreditsUI();
 
-        progressLabel.textContent = `TRANSIT TO ${travelDirection === 'TO_EARTH' ? 'EARTH' : 'MOON'}: ${progressPercent}% (ETA: ${timeFormatted})`;
-        progressBarInner.style.width = `${progressPercent}%`;
+        const progressRatio = Math.min(1.0, transitTime / TOTAL_TRANSIT_REQUIRED);
+        const distanceRemainingKm = Math.max(0, Math.floor(TOTAL_DISTANCE_KM * (1 - progressRatio)));
 
-        altEl.textContent = `${Math.floor((transitTime / TOTAL_TRANSIT_REQUIRED) * 384400)} km`;
+        progressLabel.textContent = `DISTANCE TO ${travelDirection === 'TO_EARTH' ? 'EARTH' : 'MOON'}: ${distanceRemainingKm.toLocaleString()} km`;
+        progressBarInner.style.width = `${Math.floor(progressRatio * 100)}%`;
+
+        altEl.textContent = `${Math.floor(progressRatio * TOTAL_DISTANCE_KM).toLocaleString()} km`;
 
         if (transitTime >= TOTAL_TRANSIT_REQUIRED) {
           currentWorld = travelDirection === 'TO_EARTH' ? 'EARTH' : 'MOON';
           generateTerrain(currentWorld);
           transitTime = 0;
-          lander.y = 30;
+          lander.y = 40;
           lander.vy = 0.5;
           locationEl.textContent = `${currentWorld} ATMOSPHERE`;
           progressLabel.textContent = `ARRIVED AT ${currentWorld}`;
           progressBarInner.style.width = '100%';
+          turnaroundBtn.style.display = 'none';
         }
+      } else {
+        turnaroundBtn.style.display = 'none';
       }
     }
 
@@ -683,34 +1016,35 @@
         return;
       }
 
-      // Stronger side-to-side steering RCS thrust
+      const ship = SHIPS[equippedShipIndex];
+
       if (keys.left) {
-        lander.angle -= ROTATION_SPEED;
-        if (currentWorld === 'SPACE') lander.vx -= 0.15;
+        lander.angle -= 0.10;
+        if (currentWorld === 'SPACE') lander.vx -= 0.22 * ship.speed;
       }
       if (keys.right) {
-        lander.angle += ROTATION_SPEED;
-        if (currentWorld === 'SPACE') lander.vx += 0.15;
+        lander.angle += 0.10;
+        if (currentWorld === 'SPACE') lander.vx += 0.22 * ship.speed;
       }
 
       const isThrusting = keys.thrust && lander.fuel > 0;
       setThrustSound(isThrusting);
 
       if (isThrusting) {
-        lander.vx += Math.sin(lander.angle) * THRUST * 1.5;
+        const thrustPower = 0.12 * ship.speed;
+        lander.vx += Math.sin(lander.angle) * thrustPower;
         
         if (currentWorld === 'SPACE') {
-          spaceOffsetY += Math.cos(lander.angle) * THRUST * 12;
+          spaceOffsetY += Math.cos(lander.angle) * thrustPower * 14;
         } else {
-          lander.vy -= Math.cos(lander.angle) * THRUST;
+          lander.vy -= Math.cos(lander.angle) * thrustPower;
         }
         
-        lander.fuel = Math.max(0, lander.fuel - 0.08);
+        lander.fuel = Math.max(0, lander.fuel - (0.08 / ship.strength));
       }
 
-      // Slight damping in space so controls feel snappy and responsive
       if (currentWorld === 'SPACE') {
-        lander.vx *= 0.94;
+        lander.vx *= 0.98;
       } else {
         lander.vy += GRAVITY_SURFACE;
         lander.y += lander.vy;
@@ -721,14 +1055,18 @@
       if (lander.x < 0) lander.x = width;
       if (lander.x > width) lander.x = 0;
 
+      if (currentWorld === 'EARTH') {
+        clouds.forEach(c => {
+          c.x += c.vx;
+          if (c.x - c.radius > width) c.x = -c.radius;
+        });
+      }
+
       hSpeedEl.textContent = Math.abs(lander.vx).toFixed(1);
       vSpeedEl.textContent = Math.abs(lander.vy).toFixed(1);
 
       const angleDegrees = Math.round(((lander.angle % (Math.PI * 2)) * 180) / Math.PI);
       tiltEl.textContent = `${angleDegrees}°`;
-
-      vSpeedEl.className = Math.abs(lander.vy) > SAFE_SPEED ? 'hud-value warning' : 'hud-value';
-      tiltEl.className = Math.abs(angleDegrees) > 12 ? 'hud-value warning' : 'hud-value';
 
       fuelEl.textContent = `${Math.round(lander.fuel)}%`;
 
@@ -747,7 +1085,12 @@
       }
 
       if (currentWorld === 'EARTH') {
-        ctx.fillStyle = '#0a3254';
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+        skyGrad.addColorStop(0, '#010a1a');
+        skyGrad.addColorStop(0.3, '#082b54');
+        skyGrad.addColorStop(0.7, '#155e9c');
+        skyGrad.addColorStop(1, '#3ca0e7');
+        ctx.fillStyle = skyGrad;
       } else if (currentWorld === 'MOON') {
         ctx.fillStyle = '#050505';
       } else {
@@ -766,24 +1109,40 @@
         ctx.globalAlpha = 1.0;
       }
 
-      if (currentWorld === 'SPACE') {
-        drawMeteors();
+      if (currentWorld === 'EARTH') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        clouds.forEach(c => {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+          ctx.arc(c.x + c.radius * 0.6, c.y - c.radius * 0.2, c.radius * 0.75, 0, Math.PI * 2);
+          ctx.arc(c.x - c.radius * 0.6, c.y - c.radius * 0.2, c.radius * 0.75, 0, Math.PI * 2);
+          ctx.fill();
+        });
       }
 
+      if (currentWorld === 'SPACE') drawMeteors();
+
       if (currentWorld !== 'SPACE' && terrainPoints && terrainPoints.length > 0) {
-        ctx.strokeStyle = currentWorld === 'EARTH' ? '#44aa44' : '#ffffff';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = currentWorld === 'EARTH' ? '#a5d6a7' : '#ffffff';
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
-        for (let i = 1; i < terrainPoints.length; i++) {
-          ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
-        }
+        for (let i = 1; i < terrainPoints.length; i++) ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
         ctx.stroke();
 
         ctx.lineTo(width, height);
         ctx.lineTo(0, height);
         ctx.closePath();
-        ctx.fillStyle = currentWorld === 'EARTH' ? '#113311' : '#111111';
+        
+        if (currentWorld === 'EARTH') {
+          const earthGrad = ctx.createLinearGradient(0, height - 200, 0, height);
+          earthGrad.addColorStop(0, '#2e7d32');
+          earthGrad.addColorStop(0.5, '#1b5e20');
+          earthGrad.addColorStop(1, '#0d3b12');
+          ctx.fillStyle = earthGrad;
+        } else {
+          ctx.fillStyle = '#111111';
+        }
         ctx.fill();
       }
 
@@ -804,71 +1163,20 @@
 
       drawParticles();
 
+      // DRAW LANDER ROCKET
       if (gameState === 'PLAYING' || gameState === 'LANDED') {
         ctx.save();
         ctx.translate(lander.x, lander.y);
         ctx.rotate(lander.angle);
 
-        ctx.strokeStyle = '#ffffff';
-        ctx.fillStyle = '#ffffff';
-        ctx.lineWidth = 1.2;
-
-        ctx.beginPath();
-        ctx.moveTo(-7, 2);
-        ctx.lineTo(-9, 6);
-        ctx.lineTo(-9, 10);
-        ctx.lineTo(9, 10);
-        ctx.lineTo(9, 6);
-        ctx.lineTo(7, 2);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(-6, 2);
-        ctx.lineTo(-6, -6);
-        ctx.lineTo(-3, -10);
-        ctx.lineTo(3, -10);
-        ctx.lineTo(6, -6);
-        ctx.lineTo(6, 2);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(-4, -6);
-        ctx.lineTo(-2, -8);
-        ctx.lineTo(-2, -6);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(-7, 8);
-        ctx.lineTo(-13, 15);
-        ctx.moveTo(-15, 15);
-        ctx.lineTo(-11, 15);
-        ctx.moveTo(7, 8);
-        ctx.lineTo(13, 15);
-        ctx.moveTo(11, 15);
-        ctx.lineTo(15, 15);
-        ctx.stroke();
+        drawShipVector(ctx, equippedShipIndex);
 
         if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING') {
+          ctx.strokeStyle = '#ffffff';
           ctx.beginPath();
           ctx.moveTo(-4, 10);
           ctx.lineTo(0, 10 + Math.random() * 12 + 6);
           ctx.lineTo(4, 10);
-          ctx.stroke();
-        }
-
-        if (keys.left && gameState === 'PLAYING') {
-          ctx.beginPath();
-          ctx.moveTo(6, -4);
-          ctx.lineTo(11 + Math.random() * 4, -4);
-          ctx.stroke();
-        }
-        if (keys.right && gameState === 'PLAYING') {
-          ctx.beginPath();
-          ctx.moveTo(-6, -4);
-          ctx.lineTo(-11 - Math.random() * 4, -4);
           ctx.stroke();
         }
 
@@ -881,9 +1189,31 @@
     function showOverlay(title, subtitle) {
       msgTitle.innerHTML = title;
       msgSub.innerHTML = subtitle;
-      startBtn.textContent = gameState === 'LANDED' ? 'LIFT OFF / FLY UP' : (gameState === 'START' ? 'START MISSION' : 'RESTART MISSION');
-      overlay.style.display = 'block';
+      overlay.style.display = 'flex';
     }
+
+    // MENU BUTTON EVENTS
+    document.getElementById('menu-start-btn').addEventListener('click', () => {
+      mainMenu.style.display = 'none';
+      startGame();
+    });
+
+    document.getElementById('menu-shop-btn').addEventListener('click', () => {
+      mainMenu.style.display = 'none';
+      renderShop();
+      shopScreen.style.display = 'flex';
+    });
+
+    document.getElementById('shop-back-btn').addEventListener('click', () => {
+      shopScreen.style.display = 'none';
+      mainMenu.style.display = 'flex';
+    });
+
+    document.getElementById('overlay-menu-btn').addEventListener('click', () => {
+      overlay.style.display = 'none';
+      mainMenu.style.display = 'flex';
+      gameState = 'MENU';
+    });
 
     function startGame() {
       initAudio();
@@ -901,18 +1231,17 @@
       generateTerrain(currentWorld);
       lander.reset();
       transitTime = 0;
-      meteorsDodged = 0;
       spaceOffsetY = 0;
-      meteorsDodgedEl.textContent = '0';
-      progressLabel.textContent = 'TRANSIT PROGRESS: 0%';
+      progressLabel.textContent = 'DISTANCE REMAINING: 384,400 km';
       progressBarInner.style.width = '0%';
       gameState = 'PLAYING';
     }
 
-    startBtn.addEventListener('click', startGame);
+    document.getElementById('start-btn').addEventListener('click', startGame);
 
     resize();
     generateTerrain('MOON');
+    updateCreditsUI();
 
     function loop() {
       update();
