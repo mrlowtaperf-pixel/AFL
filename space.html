@@ -1,11 +1,12 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Space Explorer</title>
-      <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/2028114-bit/Picture/refs/heads/main/favicon-32x32.png">
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -253,6 +254,17 @@
       opacity: 0.5;
     }
 
+    .shop-card.ultimate {
+      border-color: #ffffff;
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+      animation: ultimate-pulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes ultimate-pulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.25); }
+      50% { box-shadow: 0 0 26px rgba(255, 255, 255, 0.55); }
+    }
+
     .ship-preview-canvas {
       width: 90px;
       height: 90px;
@@ -288,6 +300,7 @@
       font-weight: bold;
       margin-top: 4px;
       letter-spacing: 1px;
+      word-break: break-all;
     }
 
     #ship-inspector-overlay {
@@ -335,6 +348,148 @@
     .inspector-spec-val {
       color: #ffffff;
       font-weight: bold;
+    }
+
+    #mods-overlay {
+      z-index: 15;
+    }
+
+    .mods-box {
+      border: 1px solid #ffffff;
+      background: #050505;
+      padding: 20px;
+      width: 100%;
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    }
+
+    .mods-columns {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .mods-designer, .mods-my-rockets {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .mods-subtitle {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #aaaaaa;
+      align-self: flex-start;
+    }
+
+    #designer-canvas {
+      background: #080808;
+      border: 1px solid #333333;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .mods-designer-controls {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .mods-mini-btn {
+      flex: 1;
+      padding: 8px 4px !important;
+      font-size: 9px !important;
+      letter-spacing: 1px !important;
+    }
+
+    .custom-ships-list {
+      width: 100%;
+      max-height: 260px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid #222222;
+      padding: 8px;
+      background: #030303;
+    }
+
+    .custom-ship-card {
+      border: 1px solid #333333;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .custom-ship-card.equipped {
+      border-color: #ffffff;
+      background: #111111;
+    }
+
+    .custom-ship-thumb {
+      width: 56px;
+      height: 56px;
+      background: #080808;
+      border: 1px solid #333333;
+      flex-shrink: 0;
+    }
+
+    .custom-ship-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .custom-ship-name {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      word-break: break-word;
+    }
+
+    .custom-ship-stat-row {
+      font-size: 9px;
+      color: #888888;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .custom-ship-btn-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .custom-ship-btn-row .btn-action {
+      padding: 4px 6px !important;
+      font-size: 8px !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    .custom-ship-btn-row .btn-action.danger {
+      background: #000000;
+      color: #ff6b6b;
+      border-color: #ff6b6b;
+    }
+
+    .custom-ship-btn-row .btn-action.danger:hover {
+      background: #ff6b6b;
+      color: #000000;
     }
 
     .touch-controls {
@@ -489,8 +644,37 @@
       
       <div class="shop-grid" id="shop-grid"></div>
 
-      <div style="margin-top: 20px;">
+      <div style="margin-top: 20px; display: flex; gap: 12px;">
+        <button class="btn-action" id="shop-mods-btn">🛠 ROCKET MODS</button>
         <button class="btn-action" id="shop-back-btn">BACK TO MENU</button>
+      </div>
+    </div>
+
+    <div id="mods-overlay" class="screen-overlay" style="display: none;">
+      <div class="mods-box">
+        <div class="menu-title" style="font-size: 20px; margin-bottom: 0;">ROCKET MODS</div>
+        <div style="font-size: 10px; color: #888888; letter-spacing: 2px; margin-bottom: 10px;">DESIGN YOUR OWN ROCKET, THEN PAY CREDITS TO ENHANCE IT</div>
+
+        <div class="mods-columns">
+          <div class="mods-designer">
+            <div class="mods-subtitle">DRAW YOUR HULL</div>
+            <canvas id="designer-canvas" width="234" height="234"></canvas>
+            <div class="mods-designer-controls">
+              <button class="btn-action mods-mini-btn" id="designer-erase-toggle">MODE: DRAW</button>
+              <button class="btn-action mods-mini-btn" id="designer-clear-btn">CLEAR</button>
+              <button class="btn-action mods-mini-btn" id="designer-mirror-toggle">MIRROR: ON</button>
+            </div>
+            <input type="text" id="designer-name-input" class="input-field" placeholder="ROCKET NAME" maxlength="18" style="margin-top: 10px;">
+            <button class="btn-action" id="designer-save-btn" style="margin-top: 8px; width: 100%;">SAVE NEW ROCKET</button>
+          </div>
+
+          <div class="mods-my-rockets">
+            <div class="mods-subtitle">MY ROCKETS</div>
+            <div id="custom-ships-list" class="custom-ships-list"></div>
+          </div>
+        </div>
+
+        <button class="btn-action" id="mods-back-btn" style="width: 100%; margin-top: 14px;">BACK TO SHOP</button>
       </div>
     </div>
 
@@ -517,6 +701,10 @@
           <div class="inspector-spec-row">
             <span>THRUST RATIO:</span>
             <span id="insp-ratio" class="inspector-spec-val">HIGH</span>
+          </div>
+          <div class="inspector-spec-row">
+            <span>POWER CORES:</span>
+            <span id="insp-cores" class="inspector-spec-val">1</span>
           </div>
         </div>
 
@@ -586,6 +774,7 @@
     const inspDurability = document.getElementById('insp-durability');
     const inspStrength = document.getElementById('insp-strength');
     const inspRatio = document.getElementById('insp-ratio');
+    const inspCores = document.getElementById('insp-cores');
     let inspectorAnimFrame = null;
     let inspectingShipIndex = 0;
 
@@ -746,22 +935,27 @@
     setupTouch('btn-right', 'right');
 
     const SHIPS = [
-      { name: "MK-1 SCOUT", price: 0, speed: 1.0, durability: 1.0, strength: 1.0 },
-      { name: "MK-2 APOLLO", price: 400, speed: 1.1, durability: 1.2, strength: 1.1 },
-      { name: "MK-3 HOPPER", price: 1000, speed: 1.3, durability: 1.1, strength: 1.2 },
-      { name: "MK-4 HORIZON", price: 2000, speed: 1.4, durability: 1.4, strength: 1.3 },
-      { name: "MK-5 TITAN", price: 3800, speed: 1.2, durability: 1.9, strength: 1.6 },
-      { name: "MK-6 METEOR", price: 6000, speed: 1.7, durability: 1.3, strength: 1.5 },
-      { name: "MK-7 CLIPPER", price: 9500, speed: 1.9, durability: 1.5, strength: 1.7 },
-      { name: "MK-8 VANGUARD", price: 14000, speed: 1.5, durability: 2.3, strength: 2.0 },
-      { name: "MK-9 PHOENIX", price: 20000, speed: 2.1, durability: 1.8, strength: 2.2 },
-      { name: "MK-10 NEPTUNE", price: 28000, speed: 1.8, durability: 2.6, strength: 2.5 },
-      { name: "MK-11 CENTURION", price: 38000, speed: 2.3, durability: 2.2, strength: 2.7 },
-      { name: "MK-12 SUPERNOVA", price: 50000, speed: 2.6, durability: 2.5, strength: 2.9 },
-      { name: "MK-13 HYPERION", price: 68000, speed: 2.4, durability: 3.1, strength: 3.2 },
-      { name: "MK-14 ECLIPSE", price: 90000, speed: 2.8, durability: 3.0, strength: 3.5 },
-      { name: "MK-15 SOVEREIGN", price: 120000, speed: 3.2, durability: 3.5, strength: 4.0 },
-      { name: "TUNG TUNG ROCKET", price: 150000, speed: 4.2, durability: 4.2, strength: 4.2 }
+      { name: "MK-1 SCOUT", price: 0, speed: 1.0, durability: 1.0, strength: 1.0, cores: 1 },
+      { name: "MK-2 APOLLO", price: 400, speed: 1.5, durability: 1.6, strength: 1.5, cores: 1 },
+      { name: "MK-3 HOPPER", price: 1000, speed: 2.2, durability: 1.9, strength: 2.1, cores: 1 },
+      { name: "MK-4 HORIZON", price: 2000, speed: 2.7, durability: 2.5, strength: 2.6, cores: 2 },
+      { name: "MK-5 TITAN", price: 3800, speed: 3.0, durability: 3.4, strength: 3.1, cores: 2 },
+      { name: "MK-6 METEOR", price: 6000, speed: 4.0, durability: 3.4, strength: 3.7, cores: 2 },
+      { name: "MK-7 CLIPPER", price: 9500, speed: 4.6, durability: 3.9, strength: 4.3, cores: 3 },
+      { name: "MK-8 VANGUARD", price: 14000, speed: 4.4, durability: 5.3, strength: 4.8, cores: 3 },
+      { name: "MK-9 PHOENIX", price: 20000, speed: 5.7, durability: 4.9, strength: 5.5, cores: 3 },
+      { name: "MK-10 NEPTUNE", price: 28000, speed: 5.6, durability: 6.3, strength: 5.9, cores: 4 },
+      { name: "MK-11 CENTURION", price: 38000, speed: 6.8, durability: 6.1, strength: 6.6, cores: 4 },
+      { name: "MK-12 SUPERNOVA", price: 50000, speed: 7.2, durability: 6.8, strength: 7.1, cores: 4 },
+      { name: "MK-13 HYPERION", price: 68000, speed: 7.2, durability: 8.0, strength: 7.8, cores: 5 },
+      { name: "MK-14 ECLIPSE", price: 90000, speed: 8.2, durability: 7.9, strength: 8.4, cores: 5 },
+      { name: "MK-15 SOVEREIGN", price: 120000, speed: 8.6, durability: 8.7, strength: 8.8, cores: 5 },
+      { name: "MK-16 LEVIATHAN", price: 165000, speed: 9.0, durability: 9.6, strength: 9.3, cores: 6 },
+      { name: "MK-17 RAZORWIND", price: 215000, speed: 10.4, durability: 9.3, strength: 9.9, cores: 6 },
+      { name: "MK-18 DREADNOUGHT", price: 280000, speed: 9.8, durability: 11.0, strength: 10.4, cores: 6 },
+      { name: "MK-19 SINGULARITY", price: 360000, speed: 11.2, durability: 10.6, strength: 11.3, cores: 7 },
+      { name: "MK-20 OBLIVION PRIME", price: 450000, speed: 11.6, durability: 11.6, strength: 11.9, cores: 7 },
+      { name: "TUNG TUNG ROCKET", price: 676767676767, speed: 20.0, durability: 20.0, strength: 20.0, cores: 20 }
     ];
 
     let credits = parseInt(localStorage.getItem('space_explorer_credits')) || 0;
@@ -778,7 +972,59 @@
     function saveGameData() {
       localStorage.setItem('space_explorer_credits', Math.floor(credits));
       localStorage.setItem('space_explorer_equipped', equippedShipIndex);
+      localStorage.setItem('space_explorer_equipped_custom_id', equippedCustomId || '');
       localStorage.setItem('space_explorer_bought', JSON.stringify(boughtShips));
+      localStorage.setItem('space_explorer_custom_ships', JSON.stringify(customShips));
+    }
+
+    // ==========================================
+    // CUSTOM ROCKET DESIGNER (ROCKET MODS)
+    // ==========================================
+    const CUSTOM_GRID_SIZE = 18;
+    const CUSTOM_MAX_LEVEL = 10;
+    const CUSTOM_STAT_STEP = 0.7;
+    const CUSTOM_CORE_STEP = 0.5;
+
+    let customShips = JSON.parse(localStorage.getItem('space_explorer_custom_ships')) || [];
+    let equippedCustomId = localStorage.getItem('space_explorer_equipped_custom_id') || '';
+
+    function customStatValue(ship, key) {
+      const level = ship[key + 'Level'] || 0;
+      return key === 'cores' ? 1 + level * CUSTOM_CORE_STEP : 1.0 + level * CUSTOM_STAT_STEP;
+    }
+
+    function getCustomShipStats(ship) {
+      return {
+        name: ship.name,
+        pixels: ship.pixels,
+        speed: customStatValue(ship, 'speed'),
+        durability: customStatValue(ship, 'durability'),
+        strength: customStatValue(ship, 'strength'),
+        cores: customStatValue(ship, 'cores'),
+        isCustom: true
+      };
+    }
+
+    function upgradeCost(level) {
+      return Math.round(500 * Math.pow(level + 1, 1.9));
+    }
+
+    function findCustomShip(id) {
+      return customShips.find(s => s.id === id);
+    }
+
+    // Returns the currently equipped ship as a plain stat object,
+    // whether it's a stock SHIPS entry or a player-designed custom rocket.
+    function getEquippedShip() {
+      if (equippedShipIndex === -1) {
+        const custom = findCustomShip(equippedCustomId);
+        if (custom) return getCustomShipStats(custom);
+        // Fallback if the equipped custom rocket was deleted somehow
+        equippedShipIndex = 0;
+        equippedCustomId = '';
+        saveGameData();
+      }
+      return SHIPS[equippedShipIndex];
     }
 
     const GRAVITY_SURFACE = 0.022;
@@ -816,6 +1062,7 @@
       if (SHIPS[id] && SHIPS[id].name === "TUNG TUNG ROCKET") {
         const legWobble = Math.sin(now * 3) * 3;
         const armWobble = Math.cos(now * 2.5) * 4;
+        const corePulse = 0.6 + Math.sin(now * 5) * 0.4;
 
         c.beginPath();
         c.moveTo(-6, -26);
@@ -857,6 +1104,251 @@
         c.moveTo(-8, 16); c.lineTo(-11, 24); c.lineTo(-3, 24); c.lineTo(-4, 16);
         c.moveTo(4, 16);  c.lineTo(3, 24);   c.lineTo(11, 24); c.lineTo(8, 16);
         c.stroke();
+
+        // MAXED-OUT POWER CORE ARRAY: a bank of glowing reactor cores running
+        // down the hull, pulsing with energy — this is the "more power core" upgrade.
+        c.save();
+        c.globalAlpha = corePulse;
+        c.fillStyle = '#ffffff';
+        const coreYs = [-22, -17, -12, -7, -2, 3];
+        coreYs.forEach((cy, i) => {
+          c.beginPath();
+          c.arc(0, cy, 1.6, 0, Math.PI * 2);
+          c.fill();
+        });
+        c.restore();
+
+        c.save();
+        c.globalAlpha = corePulse * 0.7;
+        c.beginPath();
+        c.arc(0, -9, 9 + corePulse * 2, 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+        return;
+      }
+
+      if (SHIPS[id] && SHIPS[id].name === "MK-16 LEVIATHAN") {
+        c.beginPath();
+        c.moveTo(-14, 12); c.lineTo(-14, -6); c.lineTo(-4, -20); c.lineTo(4, -20); c.lineTo(14, -6); c.lineTo(14, 12);
+        c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-14, -2); c.lineTo(-20, 2); c.lineTo(-20, 10); c.lineTo(-14, 12);
+        c.moveTo(14, -2); c.lineTo(20, 2); c.lineTo(20, 10); c.lineTo(14, 12);
+        c.stroke();
+        c.beginPath(); c.arc(0, -6, 3, 0, Math.PI * 2); c.stroke();
+        return;
+      }
+
+      if (SHIPS[id] && SHIPS[id].name === "MK-17 RAZORWIND") {
+        c.beginPath();
+        c.moveTo(0, -24); c.lineTo(6, 0); c.lineTo(3, 10); c.lineTo(-3, 10); c.lineTo(-6, 0);
+        c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-3, -6); c.lineTo(-18, 8); c.lineTo(-10, 6);
+        c.moveTo(3, -6); c.lineTo(18, 8); c.lineTo(10, 6);
+        c.stroke();
+        return;
+      }
+
+      if (SHIPS[id] && SHIPS[id].name === "MK-18 DREADNOUGHT") {
+        c.beginPath();
+        c.moveTo(-11, 14); c.lineTo(-11, -14); c.lineTo(-4, -20); c.lineTo(4, -20); c.lineTo(11, -14); c.lineTo(11, 14);
+        c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-11, -8); c.lineTo(-17, -8); c.lineTo(-17, 6); c.lineTo(-11, 6);
+        c.moveTo(11, -8); c.lineTo(17, -8); c.lineTo(17, 6); c.lineTo(11, 6);
+        c.stroke();
+        c.beginPath(); c.moveTo(-6, -22); c.lineTo(6, -22); c.stroke();
+        return;
+      }
+
+      if (SHIPS[id] && SHIPS[id].name === "MK-19 SINGULARITY") {
+        const spin = now * 1.5;
+        c.beginPath();
+        c.moveTo(0, -22); c.lineTo(5, -4); c.lineTo(0, 10); c.lineTo(-5, -4); c.closePath(); c.stroke();
+        c.beginPath();
+        c.ellipse(0, -2, 15, 6, spin, 0, Math.PI * 2);
+        c.stroke();
+        c.beginPath(); c.arc(0, -2, 2.5, 0, Math.PI * 2); c.stroke();
+        return;
+      }
+
+      if (SHIPS[id] && SHIPS[id].name === "MK-20 OBLIVION PRIME") {
+        const glow = 0.6 + Math.sin(now * 4) * 0.4;
+        c.beginPath();
+        c.moveTo(-9, 14); c.lineTo(-9, -18); c.lineTo(0, -26); c.lineTo(9, -18); c.lineTo(9, 14);
+        c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-9, -4); c.lineTo(-19, 4); c.lineTo(-19, 14); c.lineTo(-9, 14);
+        c.moveTo(9, -4); c.lineTo(19, 4); c.lineTo(19, 14); c.lineTo(9, 14);
+        c.stroke();
+        c.save();
+        c.globalAlpha = glow;
+        c.fillStyle = '#ffffff';
+        c.beginPath(); c.arc(0, -8, 1.8, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(0, 0, 1.8, 0, Math.PI * 2); c.fill();
+        c.restore();
+        return;
+      }
+
+      const name = SHIPS[id] && SHIPS[id].name;
+
+      if (name === "MK-1 SCOUT") {
+        c.beginPath();
+        c.moveTo(0, -14); c.lineTo(5, 6); c.lineTo(0, 3); c.lineTo(-5, 6); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-5, 4); c.lineTo(-9, 10); c.moveTo(5, 4); c.lineTo(9, 10); c.stroke();
+        return;
+      }
+
+      if (name === "MK-2 APOLLO") {
+        const blink = Math.sin(now * 2) > 0.3 ? 1 : 0.15;
+        c.beginPath();
+        c.moveTo(-6, 6); c.lineTo(-6, -8); c.lineTo(0, -18); c.lineTo(6, -8); c.lineTo(6, 6); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-6, 2); c.lineTo(-12, 12); c.moveTo(6, 2); c.lineTo(12, 12); c.stroke();
+        c.save(); c.globalAlpha = blink; c.beginPath(); c.arc(0, -6, 2.6, 0, Math.PI * 2); c.fill(); c.restore();
+        return;
+      }
+
+      if (name === "MK-3 HOPPER") {
+        const legSway = Math.sin(now * 2.5) * 2;
+        c.beginPath();
+        c.arc(0, -4, 9, Math.PI, 0); c.lineTo(8, 8); c.lineTo(-8, 8); c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-6, 8); c.lineTo(-9 + legSway, 16); c.moveTo(6, 8); c.lineTo(9 - legSway, 16);
+        c.stroke();
+        return;
+      }
+
+      if (name === "MK-4 HORIZON") {
+        const wire = Math.sin(now * 3) * 3;
+        c.beginPath();
+        c.moveTo(0, -20); c.lineTo(7, 6); c.lineTo(0, 2); c.lineTo(-7, 6); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-3, 4); c.lineTo(-16, 10); c.moveTo(3, 4); c.lineTo(16, 10); c.stroke();
+        c.beginPath(); c.moveTo(0, -20); c.quadraticCurveTo(6 + wire, -28, 3 + wire, -34); c.stroke();
+        return;
+      }
+
+      if (name === "MK-5 TITAN") {
+        const boosterPulse = Math.sin(now * 3) * 1.5;
+        c.beginPath();
+        c.moveTo(-7, 10); c.lineTo(-7, -10); c.lineTo(0, -18); c.lineTo(7, -10); c.lineTo(7, 10); c.closePath(); c.stroke();
+        c.beginPath();
+        c.rect(-13, -2 + boosterPulse, 5, 14); c.rect(8, -2 - boosterPulse, 5, 14);
+        c.stroke();
+        return;
+      }
+
+      if (name === "MK-6 METEOR") {
+        c.save();
+        c.rotate(Math.sin(now * 0.8) * 0.08);
+        c.beginPath();
+        c.moveTo(-9, 8); c.lineTo(-11, -4); c.lineTo(-3, -16); c.lineTo(5, -14); c.lineTo(10, -2); c.lineTo(6, 10); c.closePath();
+        c.stroke();
+        c.beginPath(); c.moveTo(-3, -16); c.lineTo(-1, -8); c.moveTo(5, -14); c.lineTo(2, -6); c.stroke();
+        c.restore();
+        return;
+      }
+
+      if (name === "MK-7 CLIPPER") {
+        const flap = Math.sin(now * 3) * 3;
+        c.beginPath();
+        c.moveTo(0, -18); c.lineTo(4, 6); c.lineTo(-4, 6); c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-3, -2); c.lineTo(-20, -6 + flap); c.lineTo(-18, 2 + flap); c.lineTo(-3, 4);
+        c.moveTo(3, -2); c.lineTo(20, -6 - flap); c.lineTo(18, 2 - flap); c.lineTo(3, 4);
+        c.stroke();
+        return;
+      }
+
+      if (name === "MK-8 VANGUARD") {
+        const ringPulse = 12 + Math.sin(now * 3) * 1.5;
+        c.beginPath();
+        c.moveTo(-8, 8); c.lineTo(-8, -6); c.lineTo(0, -16); c.lineTo(8, -6); c.lineTo(8, 8); c.lineTo(0, 12); c.closePath();
+        c.stroke();
+        c.save(); c.globalAlpha = 0.5;
+        c.beginPath(); c.arc(0, -2, ringPulse, 0, Math.PI * 2); c.stroke();
+        c.restore();
+        return;
+      }
+
+      if (name === "MK-9 PHOENIX") {
+        c.beginPath();
+        c.moveTo(0, -20); c.lineTo(6, 0); c.lineTo(2, 10); c.lineTo(-2, 10); c.lineTo(-6, 0); c.closePath();
+        c.stroke();
+        if (Math.random() < 0.6) {
+          c.beginPath();
+          c.moveTo(-3, 8); c.lineTo(-3 - Math.random() * 4, 14 + Math.random() * 4);
+          c.moveTo(3, 8); c.lineTo(3 + Math.random() * 4, 14 + Math.random() * 4);
+          c.stroke();
+        }
+        return;
+      }
+
+      if (name === "MK-10 NEPTUNE") {
+        const glow = 0.5 + Math.sin(now * 4) * 0.4;
+        c.beginPath();
+        c.moveTo(-6, 8); c.lineTo(-6, -8); c.lineTo(0, -14); c.lineTo(6, -8); c.lineTo(6, 8); c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(0, -14); c.lineTo(0, -22); c.moveTo(-5, -12); c.lineTo(-9, -20); c.moveTo(5, -12); c.lineTo(9, -20);
+        c.stroke();
+        c.save(); c.globalAlpha = glow; c.fillStyle = '#ffffff';
+        [[0,-22],[-9,-20],[9,-20]].forEach(p => { c.beginPath(); c.arc(p[0], p[1], 1.3, 0, Math.PI * 2); c.fill(); });
+        c.restore();
+        return;
+      }
+
+      if (name === "MK-11 CENTURION") {
+        const flash = Math.sin(now * 6) > 0.85;
+        c.beginPath();
+        c.moveTo(0, -22); c.lineTo(6, 4); c.lineTo(0, 0); c.lineTo(-6, 4); c.closePath(); c.stroke();
+        c.beginPath(); c.moveTo(-6, 4); c.lineTo(-12, 12); c.moveTo(6, 4); c.lineTo(12, 12); c.stroke();
+        if (flash) {
+          c.save(); c.lineWidth = 2; c.beginPath(); c.moveTo(0, -22); c.lineTo(0, -28); c.stroke(); c.restore();
+        }
+        return;
+      }
+
+      if (name === "MK-12 SUPERNOVA") {
+        const burst = (now * 8) % 14;
+        c.beginPath();
+        c.moveTo(0, -18); c.lineTo(5, -2); c.lineTo(0, 8); c.lineTo(-5, -2); c.closePath(); c.stroke();
+        c.save(); c.globalAlpha = Math.max(0, 1 - burst / 14);
+        c.beginPath(); c.arc(0, -2, 4 + burst, 0, Math.PI * 2); c.stroke();
+        c.restore();
+        return;
+      }
+
+      if (name === "MK-13 HYPERION") {
+        const altGlow = Math.sin(now * 4);
+        c.beginPath();
+        c.moveTo(-8, 10); c.lineTo(-8, -12); c.lineTo(0, -20); c.lineTo(8, -12); c.lineTo(8, 10); c.closePath(); c.stroke();
+        c.save(); c.fillStyle = '#ffffff';
+        c.globalAlpha = Math.max(0.15, altGlow); c.beginPath(); c.arc(-5, -1, 2, 0, Math.PI * 2); c.fill();
+        c.globalAlpha = Math.max(0.15, -altGlow); c.beginPath(); c.arc(5, -1, 2, 0, Math.PI * 2); c.fill();
+        c.restore();
+        return;
+      }
+
+      if (name === "MK-14 ECLIPSE") {
+        const orbit = now * 1.2;
+        c.beginPath();
+        c.moveTo(0, -20); c.lineTo(6, 2); c.lineTo(0, 10); c.lineTo(-6, 2); c.closePath(); c.stroke();
+        c.save(); c.translate(0, -2); c.rotate(orbit);
+        c.beginPath(); c.arc(0, 0, 13, 0.3, 2.2); c.stroke();
+        c.beginPath(); c.arc(0, 0, 13, Math.PI + 0.3, Math.PI + 2.2); c.stroke();
+        c.restore();
+        return;
+      }
+
+      if (name === "MK-15 SOVEREIGN") {
+        const sway = Math.sin(now * 2) * 2;
+        c.beginPath();
+        c.moveTo(-9, 12); c.lineTo(-9, -8); c.lineTo(0, -14); c.lineTo(9, -8); c.lineTo(9, 12); c.closePath(); c.stroke();
+        c.beginPath();
+        c.moveTo(-6 + sway, -14); c.lineTo(-6 + sway, -22);
+        c.moveTo(sway, -14); c.lineTo(sway, -26);
+        c.moveTo(6 + sway, -14); c.lineTo(6 + sway, -22);
+        c.stroke();
         return;
       }
 
@@ -883,16 +1375,70 @@
       }
     }
 
+    // Renders a player-designed custom rocket from its saved pixel grid.
+    function drawCustomShipVector(c, custom) {
+      if (!custom || !custom.pixels) return;
+      c.strokeStyle = '#ffffff';
+      c.fillStyle = '#ffffff';
+      const now = Date.now() * 0.008;
+      const cell = 2.6;
+      const offset = (CUSTOM_GRID_SIZE - 1) / 2;
+
+      custom.pixels.forEach(p => {
+        c.fillRect((p.x - offset) * cell - cell / 2, (p.y - offset) * cell - cell / 2, cell, cell);
+      });
+
+      const coreCount = Math.min(8, Math.round((custom.coresLevel || 0) / 2) + 1);
+      if (coreCount > 1) {
+        const pulse = 0.5 + Math.sin(now * 5) * 0.4;
+        c.save();
+        c.globalAlpha = pulse;
+        for (let i = 0; i < coreCount; i++) {
+          const a = (i / coreCount) * Math.PI * 2 + now * 0.5;
+          c.beginPath();
+          c.arc(Math.cos(a) * 6, Math.sin(a) * 6, 1.2, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.restore();
+      }
+    }
+
+    // Draws whichever ship the LOCAL player currently has equipped (stock or custom).
+    function drawEquippedShipVector(c) {
+      if (equippedShipIndex === -1) {
+        drawCustomShipVector(c, findCustomShip(equippedCustomId));
+      } else {
+        drawShipVector(c, equippedShipIndex);
+      }
+    }
+
+    // Draws an OPPONENT's ship from their broadcast payload (stock or custom).
+    function drawOpponentShipVector(c, opp) {
+      if (opp.shipIndex === -1 && opp.customShip) {
+        drawCustomShipVector(c, opp.customShip);
+      } else if (SHIPS[opp.shipIndex]) {
+        drawShipVector(c, opp.shipIndex);
+      } else {
+        drawShipVector(c, 0);
+      }
+    }
+
     function renderShop() {
       const grid = document.getElementById('shop-grid');
       grid.innerHTML = '';
 
+      const maxSpeed = Math.max(...SHIPS.map(s => s.speed));
+      const maxDurability = Math.max(...SHIPS.map(s => s.durability));
+      const maxStrength = Math.max(...SHIPS.map(s => s.strength));
+      const maxCores = Math.max(...SHIPS.map(s => s.cores || 1));
+
       SHIPS.forEach((ship, index) => {
         const isBought = boughtShips[index];
         const canBuy = index === 0 || boughtShips[index - 1];
+        const isUltimate = ship.name === "TUNG TUNG ROCKET";
 
         const card = document.createElement('div');
-        card.className = `shop-card ${equippedShipIndex === index ? 'equipped' : ''} ${!canBuy && !isBought ? 'locked' : ''}`;
+        card.className = `shop-card ${equippedShipIndex === index ? 'equipped' : ''} ${!canBuy && !isBought ? 'locked' : ''} ${isUltimate ? 'ultimate' : ''}`;
         
         const canvasId = `preview-canvas-${index}`;
 
@@ -903,7 +1449,7 @@
           statusText = 'LOCKED';
         }
 
-        const renderBar = (val, max = 4.2) => {
+        const renderBar = (val, max) => {
           const fillRatio = Math.min(1.0, val / max);
           const blocks = Math.round(fillRatio * 8);
           return '█'.repeat(blocks) + '░'.repeat(8 - blocks);
@@ -911,10 +1457,11 @@
 
         card.innerHTML = `
           <canvas id="${canvasId}" class="ship-preview-canvas" width="90" height="90"></canvas>
-          <div class="ship-name">${ship.name}</div>
-          <div class="ship-stat-bar">SPD: ${renderBar(ship.speed, 4.2)}</div>
-          <div class="ship-stat-bar">ARM: ${renderBar(ship.durability, 4.2)}</div>
-          <div class="ship-stat-bar">THR: ${renderBar(ship.strength, 4.2)}</div>
+          <div class="ship-name">${ship.name}${isUltimate ? ' ⚡' : ''}</div>
+          <div class="ship-stat-bar">SPD: ${renderBar(ship.speed, maxSpeed)}</div>
+          <div class="ship-stat-bar">ARM: ${renderBar(ship.durability, maxDurability)}</div>
+          <div class="ship-stat-bar">THR: ${renderBar(ship.strength, maxStrength)}</div>
+          <div class="ship-stat-bar">PWR CORES: ${renderBar(ship.cores || 1, maxCores)}</div>
           <div class="ship-price">${statusText}</div>
         `;
 
@@ -931,6 +1478,7 @@
           actionBtn.textContent = 'EQUIP';
           actionBtn.onclick = () => {
             equippedShipIndex = index;
+            equippedCustomId = '';
             saveGameData();
             renderShop();
           };
@@ -944,6 +1492,7 @@
               credits -= ship.price;
               boughtShips[index] = true;
               equippedShipIndex = index;
+              equippedCustomId = '';
               updateCreditsUI();
               renderShop();
             } else {
@@ -970,7 +1519,254 @@
       });
     }
 
-    let inspectorTime = 0;
+    // ==========================================
+    // ROCKET MODS UI LOGIC
+    // ==========================================
+    const modsOverlay = document.getElementById('mods-overlay');
+    const designerCanvas = document.getElementById('designer-canvas');
+    const designerCtx = designerCanvas.getContext('2d');
+    const designerCellPx = designerCanvas.width / CUSTOM_GRID_SIZE;
+
+    let designPixels = new Set();
+    let designerMirror = true;
+    let designerErasing = false;
+    let designerPointerDown = false;
+
+    function drawDesignerGrid() {
+      designerCtx.clearRect(0, 0, designerCanvas.width, designerCanvas.height);
+      designerCtx.fillStyle = '#0d0d0d';
+      designerCtx.fillRect(0, 0, designerCanvas.width, designerCanvas.height);
+
+      designerCtx.strokeStyle = '#1a1a1a';
+      designerCtx.lineWidth = 1;
+      for (let i = 0; i <= CUSTOM_GRID_SIZE; i++) {
+        designerCtx.beginPath();
+        designerCtx.moveTo(i * designerCellPx, 0);
+        designerCtx.lineTo(i * designerCellPx, designerCanvas.height);
+        designerCtx.stroke();
+        designerCtx.beginPath();
+        designerCtx.moveTo(0, i * designerCellPx);
+        designerCtx.lineTo(designerCanvas.width, i * designerCellPx);
+        designerCtx.stroke();
+      }
+
+      designerCtx.fillStyle = '#ffffff';
+      designPixels.forEach(key => {
+        const [x, y] = key.split(',').map(Number);
+        designerCtx.fillRect(x * designerCellPx, y * designerCellPx, designerCellPx, designerCellPx);
+      });
+    }
+
+    function designerCellFromEvent(e) {
+      const rect = designerCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const scaleX = designerCanvas.width / rect.width;
+      const scaleY = designerCanvas.height / rect.height;
+      const x = Math.floor((clientX - rect.left) * scaleX / designerCellPx);
+      const y = Math.floor((clientY - rect.top) * scaleY / designerCellPx);
+      return { x, y };
+    }
+
+    function paintDesignerCell(x, y) {
+      if (x < 0 || y < 0 || x >= CUSTOM_GRID_SIZE || y >= CUSTOM_GRID_SIZE) return;
+      const key = `${x},${y}`;
+      const mirrorX = CUSTOM_GRID_SIZE - 1 - x;
+      const mirrorKey = `${mirrorX},${y}`;
+
+      if (designerErasing) {
+        designPixels.delete(key);
+        if (designerMirror) designPixels.delete(mirrorKey);
+      } else {
+        designPixels.add(key);
+        if (designerMirror) designPixels.add(mirrorKey);
+      }
+      drawDesignerGrid();
+    }
+
+    function designerPointerHandler(e) {
+      e.preventDefault();
+      const { x, y } = designerCellFromEvent(e);
+      paintDesignerCell(x, y);
+    }
+
+    designerCanvas.addEventListener('mousedown', (e) => { designerPointerDown = true; designerPointerHandler(e); });
+    designerCanvas.addEventListener('mousemove', (e) => { if (designerPointerDown) designerPointerHandler(e); });
+    window.addEventListener('mouseup', () => { designerPointerDown = false; });
+    designerCanvas.addEventListener('touchstart', (e) => { designerPointerDown = true; designerPointerHandler(e); });
+    designerCanvas.addEventListener('touchmove', (e) => { designerPointerHandler(e); });
+    designerCanvas.addEventListener('touchend', () => { designerPointerDown = false; });
+
+    document.getElementById('designer-erase-toggle').addEventListener('click', (e) => {
+      designerErasing = !designerErasing;
+      e.target.textContent = designerErasing ? 'MODE: ERASE' : 'MODE: DRAW';
+    });
+
+    document.getElementById('designer-mirror-toggle').addEventListener('click', (e) => {
+      designerMirror = !designerMirror;
+      e.target.textContent = designerMirror ? 'MIRROR: ON' : 'MIRROR: OFF';
+    });
+
+    document.getElementById('designer-clear-btn').addEventListener('click', () => {
+      designPixels.clear();
+      drawDesignerGrid();
+    });
+
+    document.getElementById('designer-save-btn').addEventListener('click', () => {
+      const nameInput = document.getElementById('designer-name-input');
+      const name = nameInput.value.trim().toUpperCase();
+
+      if (designPixels.size < 3) {
+        alert('Draw a bit more of your rocket first! (at least 3 filled cells)');
+        return;
+      }
+      if (!name) {
+        alert('Give your rocket a name first!');
+        return;
+      }
+
+      const pixels = Array.from(designPixels).map(key => {
+        const [x, y] = key.split(',').map(Number);
+        return { x, y };
+      });
+
+      const newShip = {
+        id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: name,
+        pixels: pixels,
+        speedLevel: 0,
+        durabilityLevel: 0,
+        strengthLevel: 0,
+        coresLevel: 0
+      };
+
+      customShips.push(newShip);
+      saveGameData();
+
+      designPixels.clear();
+      nameInput.value = '';
+      drawDesignerGrid();
+      renderCustomShipsList();
+    });
+
+    function renderCustomShipThumb(canvas, custom) {
+      const c = canvas.getContext('2d');
+      c.clearRect(0, 0, canvas.width, canvas.height);
+      c.save();
+      c.translate(canvas.width / 2, canvas.height / 2);
+      c.scale(1.4, 1.4);
+      drawCustomShipVector(c, custom);
+      c.restore();
+    }
+
+    function renderCustomShipsList() {
+      const listEl = document.getElementById('custom-ships-list');
+      listEl.innerHTML = '';
+
+      if (customShips.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'font-size: 10px; color: #666666; text-align: center; padding: 20px 0;';
+        empty.textContent = 'NO CUSTOM ROCKETS YET. DESIGN ONE ON THE LEFT!';
+        listEl.appendChild(empty);
+        return;
+      }
+
+      customShips.forEach(custom => {
+        const stats = getCustomShipStats(custom);
+        const isEquipped = equippedShipIndex === -1 && equippedCustomId === custom.id;
+
+        const card = document.createElement('div');
+        card.className = `custom-ship-card ${isEquipped ? 'equipped' : ''}`;
+
+        const thumbId = `thumb-${custom.id}`;
+
+        const statRow = (label, key, step) => {
+          const level = custom[key + 'Level'] || 0;
+          const isMax = level >= CUSTOM_MAX_LEVEL;
+          const cost = upgradeCost(level);
+          return `<div class="custom-ship-stat-row"><span>${label} ${stats[key === 'coresLevel' ? 'cores' : key].toFixed(1)}</span><span>${isMax ? 'MAX' : '$' + cost.toLocaleString()}</span></div>`;
+        };
+
+        card.innerHTML = `
+          <canvas id="${thumbId}" class="custom-ship-thumb" width="56" height="56"></canvas>
+          <div class="custom-ship-info">
+            <div class="custom-ship-name">${custom.name}</div>
+            <div class="custom-ship-stat-row"><span>SPD ${stats.speed.toFixed(1)}</span><span>ARM ${stats.durability.toFixed(1)}</span></div>
+            <div class="custom-ship-stat-row"><span>THR ${stats.strength.toFixed(1)}</span><span>PWR ${stats.cores.toFixed(1)}</span></div>
+            <div class="custom-ship-btn-row">
+              <button class="btn-action" data-action="equip">${isEquipped ? 'EQUIPPED' : 'EQUIP'}</button>
+              <button class="btn-action" data-action="up-speed">+SPD ${(custom.speedLevel || 0) >= CUSTOM_MAX_LEVEL ? 'MAX' : '$' + upgradeCost(custom.speedLevel || 0).toLocaleString()}</button>
+              <button class="btn-action" data-action="up-durability">+ARM ${(custom.durabilityLevel || 0) >= CUSTOM_MAX_LEVEL ? 'MAX' : '$' + upgradeCost(custom.durabilityLevel || 0).toLocaleString()}</button>
+              <button class="btn-action" data-action="up-strength">+THR ${(custom.strengthLevel || 0) >= CUSTOM_MAX_LEVEL ? 'MAX' : '$' + upgradeCost(custom.strengthLevel || 0).toLocaleString()}</button>
+              <button class="btn-action" data-action="up-cores">+PWR ${(custom.coresLevel || 0) >= CUSTOM_MAX_LEVEL ? 'MAX' : '$' + upgradeCost(custom.coresLevel || 0).toLocaleString()}</button>
+              <button class="btn-action danger" data-action="delete">DELETE</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector('[data-action="equip"]').onclick = () => {
+          equippedShipIndex = -1;
+          equippedCustomId = custom.id;
+          saveGameData();
+          renderCustomShipsList();
+          renderShop();
+        };
+
+        const upgradeBtn = (action, levelKey) => {
+          const btn = card.querySelector(`[data-action="${action}"]`);
+          if (!btn) return;
+          btn.onclick = () => {
+            const level = custom[levelKey] || 0;
+            if (level >= CUSTOM_MAX_LEVEL) return;
+            const cost = upgradeCost(level);
+            if (credits < cost) { alert('Not enough credits!'); return; }
+            credits -= cost;
+            custom[levelKey] = level + 1;
+            updateCreditsUI();
+            saveGameData();
+            renderCustomShipsList();
+          };
+        };
+        upgradeBtn('up-speed', 'speedLevel');
+        upgradeBtn('up-durability', 'durabilityLevel');
+        upgradeBtn('up-strength', 'strengthLevel');
+        upgradeBtn('up-cores', 'coresLevel');
+
+        card.querySelector('[data-action="delete"]').onclick = () => {
+          if (!confirm(`Delete "${custom.name}"? This can't be undone.`)) return;
+          customShips = customShips.filter(s => s.id !== custom.id);
+          if (equippedCustomId === custom.id) {
+            equippedShipIndex = 0;
+            equippedCustomId = '';
+          }
+          saveGameData();
+          renderCustomShipsList();
+          renderShop();
+        };
+
+        listEl.appendChild(card);
+
+        setTimeout(() => {
+          const thumbCanvas = document.getElementById(thumbId);
+          if (thumbCanvas) renderCustomShipThumb(thumbCanvas, custom);
+        }, 10);
+      });
+    }
+
+    document.getElementById('shop-mods-btn').addEventListener('click', () => {
+      shopScreen.style.display = 'none';
+      modsOverlay.style.display = 'flex';
+      drawDesignerGrid();
+      renderCustomShipsList();
+    });
+
+    document.getElementById('mods-back-btn').addEventListener('click', () => {
+      modsOverlay.style.display = 'none';
+      shopScreen.style.display = 'flex';
+      renderShop();
+    });
+
+
     let inspectorParticles = [];
     let inspectorStars = [];
 
@@ -978,10 +1774,11 @@
       inspectingShipIndex = index;
       const ship = SHIPS[index];
 
-      inspectorTitle.textContent = ship.name;
+      inspectorTitle.textContent = ship.name === "TUNG TUNG ROCKET" ? `${ship.name} ⚡ ULTIMATE` : ship.name;
       inspSpeed.textContent = `${ship.speed.toFixed(1)}x`;
       inspDurability.textContent = `${ship.durability.toFixed(1)}x`;
       inspStrength.textContent = `${ship.strength.toFixed(1)}x`;
+      inspCores.textContent = `${ship.cores || 1}${ship.name === "TUNG TUNG ROCKET" ? " (MAXED OUT)" : ""}`;
 
       const ratioVal = (ship.strength / ship.durability).toFixed(2);
       inspRatio.textContent = ratioVal > 1.1 ? `${ratioVal} (HIGH)` : `${ratioVal} (BALANCED)`;
@@ -1211,7 +2008,7 @@
 
       if (Math.random() < 0.04 && meteors.length < 12) spawnMeteor();
 
-      const ship = SHIPS[equippedShipIndex];
+      const ship = getEquippedShip();
 
       meteors.forEach(m => {
         m.x += m.vx;
@@ -1343,7 +2140,7 @@
     function checkTerrainCollision() {
       if (currentWorld === 'SPACE' || !terrainPoints || terrainPoints.length === 0) return;
 
-      const ship = SHIPS[equippedShipIndex];
+      const ship = getEquippedShip();
 
       for (let i = 0; i < terrainPoints.length - 1; i++) {
         const p1 = terrainPoints[i];
@@ -1411,7 +2208,7 @@
         turnaroundBtn.style.display = 'block';
         turnaroundBtn.textContent = travelDirection === 'TO_EARTH' ? 'RETURN TO MOON' : 'RETURN TO EARTH';
 
-        const ship = SHIPS[equippedShipIndex];
+        const ship = getEquippedShip();
 
         if (keys.thrust && lander.fuel > 0) {
           const thrustBonus = 3.0 * ship.speed;
@@ -1471,6 +2268,7 @@
               id: myPlayerId,
               name: playerName,
               shipIndex: equippedShipIndex,
+              customShip: getBroadcastCustomShip(),
               isHost: isHost
             });
           }
@@ -1484,6 +2282,15 @@
       document.getElementById('host-start-race-btn').style.display = isHost ? 'block' : 'none';
     }
 
+    // Small payload of a custom rocket to send over multiplayer so opponents
+    // can render and label it correctly (only sent when a custom ship is equipped).
+    function getBroadcastCustomShip() {
+      if (equippedShipIndex !== -1) return null;
+      const custom = findCustomShip(equippedCustomId);
+      if (!custom) return null;
+      return getCustomShipStats(custom);
+    }
+
     function updateLobbyPlayersList(presenceState) {
       const listEl = document.getElementById('lobby-players-list');
       listEl.innerHTML = '';
@@ -1494,7 +2301,8 @@
           total++;
           const item = document.createElement('div');
           item.style.margin = '5px 0';
-          item.textContent = `🚀 ${p.name} (${SHIPS[p.shipIndex].name}) ${p.isHost ? '[HOST]' : ''}`;
+          const shipName = (p.shipIndex === -1 && p.customShip) ? p.customShip.name : (SHIPS[p.shipIndex] ? SHIPS[p.shipIndex].name : 'UNKNOWN ROCKET');
+          item.textContent = `🚀 ${p.name} (${shipName}) ${p.isHost ? '[HOST]' : ''}`;
           listEl.appendChild(item);
         });
       }
@@ -1514,6 +2322,7 @@
             y: lander.y,
             angle: lander.angle,
             shipIndex: equippedShipIndex,
+            customShip: getBroadcastCustomShip(),
             isThrusting: keys.thrust
           }
         });
@@ -1567,15 +2376,16 @@
         ctx.translate(opp.x, opp.y);
         ctx.rotate(opp.angle);
 
-        drawShipVector(ctx, opp.shipIndex);
+        drawOpponentShipVector(ctx, opp);
 
         if (opp.isThrusting) {
           ctx.strokeStyle = '#ffffff';
           ctx.fillStyle = '#ffffff';
 
-          const isTungTung = SHIPS[opp.shipIndex] && SHIPS[opp.shipIndex].name === "TUNG TUNG ROCKET";
+          const oppShip = (opp.shipIndex === -1 && opp.customShip) ? opp.customShip : SHIPS[opp.shipIndex];
+          const isTungTung = oppShip && oppShip.name === "TUNG TUNG ROCKET";
           const variant = opp.shipIndex % 5;
-          const thrusterCount = (isTungTung || variant === 2 || variant === 4) ? 2 : 1;
+          const thrusterCount = (isTungTung || opp.shipIndex === -1 || variant === 2 || variant === 4) ? 2 : 1;
           const flameY = isTungTung ? 24 : 10;
 
           for (let t = 0; t < thrusterCount; t++) {
@@ -1607,7 +2417,7 @@
       }
 
       if (!isRaceStarting) {
-        const ship = SHIPS[equippedShipIndex];
+        const ship = getEquippedShip();
 
         const rcsPower = 0.08 * ship.speed;
         if (keys.left) {
@@ -1653,7 +2463,7 @@
 
           // DYNAMIC MAIN THRUST JET PARTICLES
           const isTungTung = ship.name === "TUNG TUNG ROCKET";
-          const thrusterOffset = (isTungTung || (equippedShipIndex % 5 === 2) || (equippedShipIndex % 5 === 4)) ? [-7, 7] : [0];
+          const thrusterOffset = (isTungTung || equippedShipIndex === -1 || (equippedShipIndex % 5 === 2) || (equippedShipIndex % 5 === 4)) ? [-7, 7] : [0];
 
           thrusterOffset.forEach(offX => {
             const flameBaseX = lander.x + Math.cos(lander.angle + Math.PI/2) * (isTungTung ? 22 : 12) + Math.cos(lander.angle) * offX;
@@ -1815,20 +2625,21 @@
         ctx.translate(lander.x, lander.y);
         ctx.rotate(lander.angle);
 
-        drawShipVector(ctx, equippedShipIndex);
+        drawEquippedShipVector(ctx);
 
         if (keys.thrust && lander.fuel > 0 && gameState === 'PLAYING' && !isRaceStarting) {
           ctx.strokeStyle = '#ffffff';
           ctx.fillStyle = '#ffffff';
-          
-          const isTungTung = SHIPS[equippedShipIndex] && SHIPS[equippedShipIndex].name === "TUNG TUNG ROCKET";
+
+          const equipped = getEquippedShip();
+          const isTungTung = equipped && equipped.name === "TUNG TUNG ROCKET";
           const variant = equippedShipIndex % 5;
-          const thrusterCount = (isTungTung || variant === 2 || variant === 4) ? 2 : 1;
+          const thrusterCount = (isTungTung || equippedShipIndex === -1 || variant === 2 || variant === 4) ? 2 : 1;
           const flameY = isTungTung ? 24 : 10;
 
           for (let t = 0; t < thrusterCount; t++) {
             const offX = thrusterCount === 2 ? (t === 0 ? -7 : 7) : 0;
-            const lenMultiplier = (SHIPS[equippedShipIndex].strength || 1.0);
+            const lenMultiplier = (equipped.strength || 1.0);
             const outerLen = (Math.random() * 14 + 10) * (0.8 + lenMultiplier * 0.2);
             const innerLen = outerLen * 0.55;
 
