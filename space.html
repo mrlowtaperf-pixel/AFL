@@ -2685,6 +2685,7 @@
 
     // Single Player
     document.getElementById('menu-single-btn').addEventListener('click', () => {
+      initAudio();
       mainMenu.style.display = 'none';
       startGame();
     });
@@ -2802,7 +2803,10 @@
       gameState = 'PLAYING';
     }
 
-    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('start-btn').addEventListener('click', () => {
+      initAudio();
+      startGame();
+    });
 
     resize();
     generateTerrain('MOON');
